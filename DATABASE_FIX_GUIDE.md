@@ -16,11 +16,10 @@ $admin = \App\Models\User::create([
 ]);
 
 // After (fixed):
-$admin = \App\Models\User::updateOrCreate(
-    ['email' => 'admin@esmooth.com'],
+$admin = \App\Models\User::updateOrCreate(    ['email' => 'admin@esmooth.com'],
     [
         'name' => 'Admin User',
-        'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+        'password' => 'admin123',
         'role' => 'admin',
         'email_verified_at' => now()
     ]

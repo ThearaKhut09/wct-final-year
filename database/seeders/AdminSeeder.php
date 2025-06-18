@@ -17,7 +17,7 @@ class AdminSeeder extends Seeder
             ['email' => 'admin@esmooth.com'],
             [
                 'name' => 'Admin User',
-                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'password' => 'admin123',
                 'role' => 'admin',
                 'email_verified_at' => now()
             ]
@@ -28,7 +28,7 @@ class AdminSeeder extends Seeder
             ['email' => 'customer@esmooth.com'],
             [
                 'name' => 'John Doe',
-                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'password' => 'customer123',
                 'role' => 'customer',
                 'email_verified_at' => now()
             ]

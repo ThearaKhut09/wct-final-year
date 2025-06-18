@@ -167,10 +167,9 @@
             <strong>Admin Account:</strong><br>
             admin@esmooth.com<br>
             <button class="demo-account-btn" onclick="fillDemoAccount('admin')">Fill Admin</button>
-        </div>
-        <div>
+        </div>        <div>
             <strong>Customer Account:</strong><br>
-            customer@example.com<br>
+            customer@esmooth.com<br>
             <button class="demo-account-btn" onclick="fillDemoAccount('customer')">Fill Customer</button>
         </div>
     </div>
@@ -274,8 +273,9 @@ function fillDemoAccount(type) {
         document.getElementById('email').value = 'admin@esmooth.com';
         document.getElementById('password').value = 'admin123';
     } else {
-        document.getElementById('email').value = 'customer@example.com';
-        document.getElementById('password').value = 'customer123';    }
+        document.getElementById('email').value = 'customer@esmooth.com';
+        document.getElementById('password').value = 'customer123';
+    }
 }
 </script>
 @endsection

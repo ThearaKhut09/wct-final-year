@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 
 @section('title', 'Admin Dashboard - E-smooth Online')
 
@@ -548,4 +548,4 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('lastUpdated').textContent = now.toLocaleTimeString();
 });
 </script>
-@endsection
+@endsection --}}
