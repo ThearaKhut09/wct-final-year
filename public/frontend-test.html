@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Test - E-smooth Online</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .test-container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+        }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            background: #007cba; 
+            color: white; 
+            border: none; 
+            border-radius: 3px; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #005a82; 
+        }
+        .result { 
+            margin: 10px 0; 
+            padding: 10px; 
+            border-radius: 3px; 
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+        .info { 
+            background: #cce7ff; 
+            color: #0c5460; 
+            border: 1px solid #b3d7ff; 
+        }
+        .dark-mode-test {
+            padding: 20px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        [data-theme="dark"] .dark-mode-test {
+            background: #333;
+            color: white;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+        <i id="themeIcon">🌙</i>
+    </button>
+
+    <div class="test-container">
+        <h1>E-smooth Online - Frontend/Backend Test</h1>
+        
+        <div class="test-section">
+            <h3>1. Dark Mode Test</h3>
+            <div class="dark-mode-test">
+                <p>This section should change color when you toggle dark mode using the button in the top right.</p>
+                <button onclick="testDarkMode()">Test Dark Mode Toggle</button>
+            </div>
+            <div id="darkmode-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. API Authentication Test</h3>
+            <button onclick="testLogin()">Test Admin Login</button>
+            <button onclick="testProfile()">Test Profile (needs login)</button>
+            <button onclick="testLogout()">Test Logout</button>
+            <div id="auth-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. API Data Test</h3>
+            <button onclick="testProducts()">Test Get Products</button>
+            <button onclick="testCategories()">Test Get Categories</button>
+            <div id="data-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Local Storage Test</h3>
+            <button onclick="testStorage()">Test Storage Functions</button>
+            <div id="storage-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. Navigation Test</h3>
+            <button onclick="testNavigation()">Test Page Navigation</button>
+            <div id="nav-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Results</h3>
+            <div id="all-results"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('auth_token');
+
+        function log(message, type = 'info', targetId = 'all-results') {
+            const result = document.createElement('div');
+            result.className = 'result ' + type;
+            result.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            
+            const target = document.getElementById(targetId);
+            if (target) {
+                target.appendChild(result);
+            }
+        }
+
+        // Dark Mode Functions
+        function toggleTheme() {
+            const body = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                body.removeAttribute('data-theme');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+                log('Switched to light mode', 'success', 'darkmode-result');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+                log('Switched to dark mode', 'success', 'darkmode-result');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                if (themeIcon) themeIcon.textContent = '☀️';
+            } else {
+                if (themeIcon) themeIcon.textContent = '🌙';
+            }
+        }
+
+        function testDarkMode() {
+            toggleTheme();
+            log('Dark mode toggle test completed', 'info', 'darkmode-result');
+        }
+
+        // API Test Functions
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+                return { success: response.ok, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testLogin() {
+            const result = await makeRequest('/api/login', {
+                method: 'POST',
+                body: JSON.stringify({
+                    email: 'admin@esmooth.com',
+                    password: 'admin123'
+                })
+            });
+
+            if (result.success && result.data.success) {
+                authToken = result.data.data.access_token;
+                localStorage.setItem('auth_token', authToken);
+                localStorage.setItem('user_data', JSON.stringify(result.data.data.user));
+                log('Login successful', 'success', 'auth-result');
+            } else {
+                log('Login failed: ' + (result.data?.message || result.error), 'error', 'auth-result');
+            }
+        }
+
+        async function testProfile() {
+            if (!authToken) {
+                log('No auth token - login first', 'error', 'auth-result');
+                return;
+            }
+
+            const result = await makeRequest('/api/profile');
+            
+            if (result.success) {
+                log('Profile loaded: ' + result.data.data.name, 'success', 'auth-result');
+            } else {
+                log('Profile failed: ' + (result.data?.message || result.error), 'error', 'auth-result');
+            }
+        }
+
+        async function testLogout() {
+            if (!authToken) {
+                log('No auth token to logout with', 'info', 'auth-result');
+                return;
+            }
+
+            const result = await makeRequest('/api/logout', { method: 'POST' });
+            
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            authToken = null;
+            
+            log('Logout completed', 'info', 'auth-result');
+        }
+
+        async function testProducts() {
+            const result = await makeRequest('/api/products');
+            
+            if (result.success) {
+                log('Products loaded: ' + result.data.data.length + ' items', 'success', 'data-result');
+            } else {
+                log('Products failed: ' + (result.data?.message || result.error), 'error', 'data-result');
+            }
+        }
+
+        async function testCategories() {
+            const result = await makeRequest('/api/categories');
+            
+            if (result.success) {
+                log('Categories loaded: ' + result.data.data.length + ' items', 'success', 'data-result');
+            } else {
+                log('Categories failed: ' + (result.data?.message || result.error), 'error', 'data-result');
+            }
+        }
+
+        function testStorage() {
+            try {
+                // Test localStorage
+                localStorage.setItem('test', 'value');
+                const test = localStorage.getItem('test');
+                localStorage.removeItem('test');
+                
+                if (test === 'value') {
+                    log('localStorage working correctly', 'success', 'storage-result');
+                } else {
+                    log('localStorage test failed', 'error', 'storage-result');
+                }
+
+                // Test theme storage
+                const theme = localStorage.getItem('theme');
+                log('Current theme: ' + (theme || 'default'), 'info', 'storage-result');
+
+                // Test auth storage
+                const userData = localStorage.getItem('user_data');
+                log('User data stored: ' + (userData ? 'Yes' : 'No'), 'info', 'storage-result');
+
+            } catch (error) {
+                log('Storage error: ' + error.message, 'error', 'storage-result');
+            }
+        }
+
+        function testNavigation() {
+            log('Current URL: ' + window.location.href, 'info', 'nav-result');
+            log('Protocol: ' + window.location.protocol, 'info', 'nav-result');
+            log('Host: ' + window.location.host, 'info', 'nav-result');
+            log('Pathname: ' + window.location.pathname, 'info', 'nav-result');
+            
+            // Test if we can access other pages
+            log('Testing navigation links...', 'info', 'nav-result');
+            
+            const testLinks = [
+                '/login',
+                '/products', 
+                '/about',
+                '/contact',
+                '/api/products'
+            ];
+            
+            testLinks.forEach(link => {
+                fetch(link, { method: 'HEAD' })
+                    .then(response => {
+                        log(link + ' - Status: ' + response.status, 
+                            response.ok ? 'success' : 'error', 'nav-result');
+                    })
+                    .catch(error => {
+                        log(link + ' - Error: ' + error.message, 'error', 'nav-result');
+                    });
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            
+            // Check if we have saved auth
+            if (authToken) {
+                log('Found saved auth token', 'info');
+            }
+            
+            log('Frontend test page loaded successfully', 'success');
+        });
+    </script>
+
+    <style>
+        /* Dark mode styles */
+        [data-theme="dark"] body {
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        [data-theme="dark"] .test-container {
+            background: #2a2a2a;
+            box-shadow: 0 2px 10px rgba(255,255,255,0.1);
+        }
+        
+        [data-theme="dark"] .test-section {
+            border-color: #444;
+        }
+        
+        [data-theme="dark"] .theme-toggle {
+            background: #555;
+        }
+    </style>
+</body>
+</html>

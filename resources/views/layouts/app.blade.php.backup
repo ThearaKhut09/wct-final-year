@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'E-smooth Online - Premium Shopping Experience')</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+      <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1e293b;
+            --light-color: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        /* Dark mode body */
+        [data-theme="dark"] body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        /* Header Styles */
+        .header {
+            background: white;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        .navbar {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        /* Dark mode logo */
+        [data-theme="dark"] .logo {
+            color: #f1f5f9 !important;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+
+        /* Dark mode navigation links */
+        [data-theme="dark"] .nav-links a {
+            color: #f1f5f9 !important;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Dark mode active link */
+        [data-theme="dark"] .nav-links a:hover,
+        [data-theme="dark"] .nav-links a.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6 !important;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Dark mode mobile menu */
+        [data-theme="dark"] .mobile-menu-toggle {
+            color: #f1f5f9;
+        }
+
+        /* Dark mode theme toggle */
+        [data-theme="dark"] .theme-toggle {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .cart-icon {
+            position: relative;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+        }
+
+        /* Dark mode cart icon */
+        [data-theme="dark"] .cart-icon {
+            color: #f1f5f9;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -0.25rem;
+            right: -0.25rem;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 1.25rem;
+            height: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Dark mode cart count */
+        [data-theme="dark"] .cart-count {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Dark mode primary button */
+        [data-theme="dark"] .btn-primary {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        [data-theme="dark"] .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* Dark mode secondary button */
+        [data-theme="dark"] .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-color);
+            color: var(--light-color);
+            padding: 3rem 2rem 1rem;
+            margin-top: 4rem;
+        }
+
+        [data-theme="dark"] .footer {
+            background: #020617;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        /* Dark mode footer text */
+        [data-theme="dark"] .footer-content p {
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: var(--box-shadow);
+                padding: 1rem;
+                flex-direction: column;
+            }
+
+            [data-theme="dark"] .nav-links {
+                background: var(--dark-color);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+        }
+
+        /* Dark mode cards */
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .product-card {
+            background: var(--light-color);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .card-header,
+        [data-theme="dark"] .product-card-header {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Dark mode forms */
+        [data-theme="dark"] .form-input,
+        [data-theme="dark"] .form-textarea,
+        [data-theme="dark"] .form-select {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .form-input:focus,
+        [data-theme="dark"] .form-textarea:focus,
+        [data-theme="dark"] .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        [data-theme="dark"] .form-label {
+            color: #f1f5f9;
+        }
+
+        /* Dark mode tables */
+        [data-theme="dark"] table {
+            background: var(--light-color);
+        }
+
+        [data-theme="dark"] thead {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="dark"] th,
+        [data-theme="dark"] td {
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Dark mode modals */
+        [data-theme="dark"] .modal-content {
+            background: var(--light-color);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        [data-theme="dark"] .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Dark mode notifications */
+        [data-theme="dark"] .notification {
+            background: var(--light-color);
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .notification.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #34d399;
+        }
+
+        [data-theme="dark"] .notification.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: #f87171;
+        }
+
+        [data-theme="dark"] .notification.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: #f59e0b;
+            color: #fbbf24;
+        }
+
+        [data-theme="dark"] .notification.info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        /* Dark mode dropdown menus */
+        [data-theme="dark"] .dropdown-menu {
+            background: var(--light-color);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .dropdown-item {
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Dark mode search */
+        [data-theme="dark"] .search-input {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Dark mode badges */
+        [data-theme="dark"] .badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .badge.primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        [data-theme="dark"] .badge.success {
+            background: #10b981;
+            color: white;
+        }
+
+        [data-theme="dark"] .badge.warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        [data-theme="dark"] .badge.danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Dark mode breadcrumb */
+        [data-theme="dark"] .breadcrumb {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="dark"] .breadcrumb-item {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .breadcrumb-item.active {
+            color: #f1f5f9;
+        }
+
+        /* Dark mode pagination */
+        [data-theme="dark"] .pagination .page-link {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .pagination .page-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="dark"] .pagination .page-item.active .page-link {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        /* Dark mode progress bars */
+        [data-theme="dark"] .progress {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="dark"] .progress-bar {
+            background: #3b82f6;
+        }
+
+        /* Dark mode alerts */
+        [data-theme="dark"] .alert {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #34d399;
+        }
+
+        [data-theme="dark"] .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: #f87171;
+        }
+
+        [data-theme="dark"] .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: #f59e0b;
+            color: #fbbf24;
+        }
+
+        [data-theme="dark"] .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        /* Dark mode mobile navigation */
+        [data-theme="dark"] .nav-links {
+            background: var(--dark-color);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            width: 40px;
+            height: 40px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--light-color);
+            border-color: var(--primary-color);
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+    </style>
+    
+    @stack('styles')
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <a href="{{ route('home') }}" class="logo">E-smooth Online</a>
+            
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+              <ul class="nav-links" id="navLinks">
+                <li><a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a></li>
+                <li><a href="{{ route('products') }}" class="{{ request()->routeIs('products') ? 'active' : '' }}">Products</a></li>
+                <li><a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About</a></li>
+                <li><a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a></li>
+                <li><a href="{{ route('wishlist') }}" class="{{ request()->routeIs('wishlist') ? 'active' : '' }}">
+                    <i class="fas fa-heart"></i> Wishlist
+                </a></li>            </ul>
+            
+            <div class="nav-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                <a href="{{ route('cart') }}" class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </a>
+                <div id="authSection">
+                    <a href="{{ route('login') }}" class="btn btn-primary" id="loginBtn">Login</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        @yield('content')
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>E-smooth Online</h3>
+                <p>Your premier destination for high-quality products at unbeatable prices. Shop with confidence and style.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ route('home') }}">Home</a></li>
+                    <li><a href="{{ route('products') }}">Products</a></li>
+                    <li><a href="{{ route('about') }}">About Us</a></li>
+                    <li><a href="{{ route('contact') }}">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Categories</h3>
+                <ul>
+                    <li><a href="#">Electronics</a></li>
+                    <li><a href="#">Mobile Phones</a></li>
+                    <li><a href="#">Clothing</a></li>
+                    <li><a href="#">Shoes</a></li>
+                    <li><a href="#">Accessories</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <ul>
+                    <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                    <li><i class="fas fa-envelope"></i> info@esmooth.com</li>
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Commerce St, NY 10001</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 E-smooth Online. All rights reserved. | Designed with ❤️ for amazing shopping experience</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>        // Theme Toggle
+        function toggleTheme() {
+            const body = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                body.removeAttribute('data-theme');
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+                console.log('Switched to light mode');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+                console.log('Switched to dark mode');
+            }
+        }
+
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                console.log('Loaded dark mode from localStorage');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                console.log('Loaded light mode from localStorage');
+            }
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+
+        // Cart Management
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // Listen for cart updates from other tabs/windows
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'cart') {
+                cart = JSON.parse(e.newValue) || [];
+                updateCartCount();
+                
+                // If we're on the cart page, refresh the display
+                if (window.location.pathname === '/cart' && typeof renderCart === 'function') {
+                    renderCart();
+                }
+            }
+        });
+
+        function updateCartCount() {
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                cartCount.textContent = totalItems;
+                
+                // Update cart badge visibility
+                if (totalItems > 0) {
+                    cartCount.style.display = 'flex';
+                } else {
+                    cartCount.style.display = 'none';
+                }
+            }
+        }
+
+        function addToCart(productId, name, price, image) {
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: productId,
+                    name: name,
+                    price: price,
+                    image: image,
+                    quantity: 1
+                });
+            }
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            
+            // Show notification
+            showNotification('Product added to cart!', 'success');
+        }
+
+        // Authentication Management        function updateAuthUI() {
+            const authSection = document.getElementById('authSection');
+            if (!authSection) return;
+            
+            const userData = localStorage.getItem('user_data');
+            const token = localStorage.getItem('auth_token');
+            
+            if (userData && token) {
+                try {
+                    const user = JSON.parse(userData);
+                    authSection.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="color: var(--text-primary);">Welcome, ${user.name.split(' ')[0]}!</span>
+                            <a href="{{ route('profile') }}" class="btn btn-outline" title="My Profile">
+                                <i class="fas fa-user"></i>
+                            </a>
+                            <button class="btn btn-secondary" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    `;
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    authSection.innerHTML = `
+                        <a href="{{ route('login') }}" class="btn btn-primary" id="loginBtn">Login</a>
+                    `;
+                }
+            } else {
+                authSection.innerHTML = `
+                    <a href="{{ route('login') }}" class="btn btn-primary" id="loginBtn">Login</a>
+                `;
+            }
+        }        async function logout() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (token) {
+                    await fetch('/api/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Accept': 'application/json'
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user_data');
+                updateAuthUI();
+                showNotification('Logged out successfully!', 'success');
+                
+                // Redirect to home if on admin page
+                if (window.location.pathname.includes('/admin')) {
+                    window.location.href = '/';
+                }
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'var(--success-color)' : type === 'error' ? 'var(--danger-color)' : type === 'warning' ? 'var(--warning-color)' : 'var(--primary-color)'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 0.5rem;
+                box-shadow: var(--box-shadow);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+                word-wrap: break-word;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+
+        // Add slide-in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            updateCartCount();
+            updateAuthUI();
+            
+            // Test dark mode after initialization
+            setTimeout(testDarkMode, 1000);
+        });
+
+        // Check authentication status
+        async function checkAuthenticationStatus() {
+            const token = localStorage.getItem('auth_token');
+            const userData = localStorage.getItem('user_data');
+            
+            if (token && userData) {
+                try {
+                    // Verify token is still valid
+                    const response = await fetch('/api/profile', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        // Token is invalid, clear localStorage
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_data');
+                        updateAuthUI();
+                    }
+                } catch (error) {
+                    console.error('Auth check error:', error);
+                    // On network error, keep the stored auth data
+                }
+            }
+        }
+
+        // Test dark mode functionality
+        function testDarkMode() {
+            console.log('Testing dark mode functionality...');
+            console.log('Current theme:', document.documentElement.getAttribute('data-theme') || 'light');
+            console.log('Theme icon element:', document.getElementById('themeIcon'));
+            console.log('Stored theme:', localStorage.getItem('theme'));
+            
+            // Test CSS variables
+            const computedStyle = getComputedStyle(document.documentElement);
+            console.log('Primary color:', computedStyle.getPropertyValue('--primary-color'));
+            console.log('Text primary:', computedStyle.getPropertyValue('--text-primary'));
+            console.log('Light color:', computedStyle.getPropertyValue('--light-color'));
+        }
+    </script>
+    
+    <!-- API Client and Main JavaScript -->
+    <script src="{{ asset('js/api-client.js') }}"></script>
+    <script src="{{ asset('js/main.js') }}"></script>
+
+    @stack('scripts')
+</body>
+</html>
