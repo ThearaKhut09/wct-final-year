@@ -45,4 +45,9 @@ Route::prefix('admin')->group(function () {
     Route::get('/', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
+    
+    // Test route to verify admin access
+    Route::get('/test', function () {
+        return '<h1>Admin Test Route Works!</h1><a href="/admin">Go to Dashboard</a>';
+    })->name('admin.test');
 });

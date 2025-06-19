@@ -124,13 +124,14 @@
         <h1 id="profileName">Loading...</h1>
         <p id="profileEmail">Loading...</p>
         <p><strong>Member since:</strong> <span id="memberSince">Loading...</span></p>
-    </div>
-
-    <div class="profile-tabs">
+    </div>    <div class="profile-tabs">
         <button class="tab-btn active" onclick="switchTab('personal')">Personal Info</button>
         <button class="tab-btn" onclick="switchTab('orders')">My Orders</button>
         <button class="tab-btn" onclick="switchTab('wishlist')">Wishlist</button>
         <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+        <button class="tab-btn" onclick="window.open('http://127.0.0.1:8000/admin', '_blank')" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; border-radius: 0.5rem;">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </button>
     </div>
 
     <!-- Personal Info Tab -->
