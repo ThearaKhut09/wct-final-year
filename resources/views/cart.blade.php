@@ -350,21 +350,18 @@
 
         const item = cart.find(item => item.id === productId);
         if (item) {
-            item.quantity = newQuantity;
-            localStorage.setItem('cart', JSON.stringify(cart));
+            item.quantity = newQuantity;            localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
             renderCart();
-            showNotification('Cart updated!', 'success');
+            showNotification('Cart updated successfully!', 'success');
         }
-    }
-
-    function removeItem(productId) {
+    }    function removeItem(productId) {
         if (confirm('Are you sure you want to remove this item from your cart?')) {
             cart = cart.filter(item => item.id !== productId);
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
             renderCart();
-            showNotification('Item removed from cart', 'success');
+            showNotification('Product removed from cart!', 'success');
         }
     }
 
@@ -374,7 +371,7 @@
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
             renderCart();
-            showNotification('Cart cleared', 'success');
+            showNotification('Cart cleared successfully!', 'success');
         }
     }
 
@@ -386,10 +383,11 @@
 
         // For demo purposes, show a checkout simulation
         showNotification('Checkout feature coming soon! This is a demo.', 'info');
-        
-        // In a real application, you would redirect to checkout:
+          // In a real application, you would redirect to checkout:
         // window.location.href = '/checkout';
-    }    function saveForLater() {
+    }
+
+    function saveForLater() {
         localStorage.setItem('savedCart', JSON.stringify(cart));
         showNotification('Cart saved for later!', 'success');
     }

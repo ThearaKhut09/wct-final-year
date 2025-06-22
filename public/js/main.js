@@ -1,4 +1,33 @@
 // Main JavaScript for E-smooth Online
+
+// Utility functions
+const utils = {
+    formatPrice: function(price) {
+        return '$' + parseFloat(price).toFixed(2);
+    },
+    
+    showMessage: function(message, type = 'info') {
+        if (typeof showNotification === 'function') {
+            showNotification(message, type);
+        } else {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+    },
+    
+    handleApiError: function(error) {
+        console.error('API Error:', error);
+        const message = error.message || 'An error occurred';
+        this.showMessage(message, 'error');
+    }
+};
+
+// Simple auth utility
+const auth = {
+    isLoggedIn: function() {
+        return localStorage.getItem('auth_token') !== null;
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize theme
     initializeTheme();
@@ -7,9 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeAuth();
     
     // Initialize product functionality
-    initializeProducts();
-    
-    // Initialize cart functionality
+    initializeProducts();    // Initialize cart functionality
     initializeCart();
     
     // Initialize search functionality
@@ -253,8 +280,11 @@ async function filterProducts() {
 
 // Cart Management
 function initializeCart() {
-    // Update cart UI on page load
-    cart.updateUI();
+    // Get cart from localStorage (compatible with layout implementation)
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Update cart count on page load
+    updateCartCount();
     
     // Cart page functionality
     if (window.location.pathname === '/cart') {
@@ -274,7 +304,10 @@ function displayCartItems() {
     
     if (!cartContainer) return;
     
-    if (cart.items.length === 0) {
+    // Get cart from localStorage (compatible with layout implementation)
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    if (cart.length === 0) {
         cartContainer.innerHTML = `
             <div class="text-center p-4">
                 <i class="fas fa-shopping-cart fa-3x text-secondary mb-3"></i>
@@ -286,23 +319,22 @@ function displayCartItems() {
         return;
     }
     
-    const cartHTML = cart.items.map(item => `
-        <div class="cart-item" data-product-id="${item.product.id}">
-            <img src="${item.product.image || '/images/placeholder.jpg'}" 
-                 alt="${item.product.name}" 
+    const cartHTML = cart.map(item => `
+        <div class="cart-item" data-product-id="${item.id}">
+            <img src="${item.image || '/images/placeholder.jpg'}" 
+                 alt="${item.name}" 
                  class="cart-item-image">
             <div class="cart-item-info">
-                <h4>${item.product.name}</h4>
-                <p class="text-secondary">${item.product.description || ''}</p>
-                <div class="cart-item-price">${utils.formatPrice(item.product.price)}</div>
+                <h4>${item.name}</h4>
+                <div class="cart-item-price">$${parseFloat(item.price).toFixed(2)}</div>
             </div>
             <div class="cart-item-controls">
                 <div class="quantity-controls">
-                    <button class="btn-quantity" onclick="updateCartQuantity(${item.product.id}, ${item.quantity - 1})">-</button>
+                    <button class="btn-quantity" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
                     <span class="quantity">${item.quantity}</span>
-                    <button class="btn-quantity" onclick="updateCartQuantity(${item.product.id}, ${item.quantity + 1})">+</button>
+                    <button class="btn-quantity" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
                 </div>
-                <button class="btn btn-danger btn-sm" onclick="removeFromCart(${item.product.id})">
+                <button class="btn btn-danger btn-sm" onclick="removeItem(${item.id})">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -312,18 +344,46 @@ function displayCartItems() {
     cartContainer.innerHTML = cartHTML;
     
     if (cartTotal) {
-        cartTotal.textContent = utils.formatPrice(cart.getTotal());
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        cartTotal.textContent = '$' + total.toFixed(2);
     }
 }
 
 function updateCartQuantity(productId, quantity) {
-    cart.updateQuantity(productId, quantity);
-    displayCartItems();
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const item = cart.find(item => item.id === productId);
+    
+    if (item) {
+        if (quantity <= 0) {
+            cart = cart.filter(item => item.id !== productId);
+            if (typeof showNotification === 'function') {
+                showNotification('Product removed from cart!', 'success');
+            }
+        } else {
+            item.quantity = quantity;
+            if (typeof showNotification === 'function') {
+                showNotification('Cart updated successfully!', 'success');
+            }
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartCount();
+        displayCartItems();
+    }
 }
 
 function removeFromCart(productId) {
-    cart.remove(productId);
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart = cart.filter(item => item.id !== productId);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
     displayCartItems();
+    
+    // Use the global showNotification function if available, fallback to utils.showMessage
+    if (typeof showNotification === 'function') {
+        showNotification('Product removed from cart!', 'success');
+    } else {
+        utils.showMessage('Product removed from cart!', 'success');
+    }
 }
 
 async function handleCheckout() {
@@ -333,19 +393,22 @@ async function handleCheckout() {
         return;
     }
     
-    if (cart.items.length === 0) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    if (cart.length === 0) {
         utils.showMessage('Your cart is empty', 'warning');
         return;
     }
     
     try {
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const orderData = {
-            items: cart.items.map(item => ({
-                product_id: item.product.id,
+            items: cart.map(item => ({
+                product_id: item.id,
                 quantity: item.quantity,
-                price: item.product.price
+                price: item.price
             })),
-            total_amount: cart.getTotal()
+            total_amount: total
         };
         
         const response = await api.createOrder(orderData);
@@ -416,3 +479,50 @@ function hideLoading(element) {
 window.updateCartQuantity = updateCartQuantity;
 window.removeFromCart = removeFromCart;
 window.toggleTheme = toggleTheme;
+
+// Make updateCartCount available globally
+window.updateCartCount = function() {
+    const cartCount = document.getElementById('cartCount');
+    if (cartCount) {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCount.textContent = totalItems;
+        
+        // Update cart badge visibility
+        if (totalItems > 0) {
+            cartCount.style.display = 'flex';
+        } else {
+            cartCount.style.display = 'none';
+        }
+    }
+};
+
+// Ensure addToCart is available globally (backup to layout function)
+if (!window.addToCart) {
+    window.addToCart = function(productId, name, price, image) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const existingItem = cart.find(item => item.id === productId);
+        
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({
+                id: productId,
+                name: name,
+                price: price,
+                image: image,
+                quantity: 1
+            });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        // Update cart count
+        if (typeof window.updateCartCount === 'function') {
+            window.updateCartCount();
+        }
+        
+        // Show notification
+        utils.showMessage('Product added to cart!', 'success');
+    };
+}

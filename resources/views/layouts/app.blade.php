@@ -264,22 +264,23 @@
         .cart-icon:hover {
             background-color: rgba(37, 99, 235, 0.1);
             color: var(--primary-color);
-        }
-
-        .cart-count {
+        }        .cart-count {
             position: absolute;
-            top: -0.25rem;
-            right: -0.25rem;
+            top: -0.5rem;
+            right: -0.5rem;
             background: var(--danger-color);
             color: white;
             border-radius: 50%;
             width: 1.25rem;
             height: 1.25rem;
-            display: flex;
+            display: none; /* Initially hidden */
             align-items: center;
             justify-content: center;
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 700;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
         }
 
         .btn {
@@ -606,13 +607,14 @@
                     renderCart();
                 }
             }
-        });
-
-        function updateCartCount() {
+        });        function updateCartCount() {
             const cartCount = document.getElementById('cartCount');
             if (cartCount) {
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
                 const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
                 cartCount.textContent = totalItems;
+                
+                console.log('Cart count updated:', totalItems, 'items in cart:', cart.length);
                 
                 // Update cart badge visibility
                 if (totalItems > 0) {
@@ -620,10 +622,11 @@
                 } else {
                     cartCount.style.display = 'none';
                 }
+            } else {
+                console.log('Cart count element not found');
             }
-        }
-
-        function addToCart(productId, name, price, image) {
+        }        function addToCart(productId, name, price, image) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
             const existingItem = cart.find(item => item.id === productId);
             
             if (existingItem) {
@@ -743,8 +746,7 @@
                 }
             }
         `;
-        document.head.appendChild(style);        
-        // Initialize
+        document.head.appendChild(style);          // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadTheme();
             updateCartCount();
@@ -753,6 +755,9 @@
             // Also check authentication status on page load
             checkAuthenticationStatus();
         });
+
+        // Make updateCartCount available globally
+        window.updateCartCount = updateCartCount;
 
         // Check authentication status
         async function checkAuthenticationStatus() {
@@ -813,10 +818,9 @@
             console.log('testClick:', typeof window.testClick);
             console.log('toggleTheme:', typeof window.toggleTheme);
         });</script>
-    
-    <!-- External JS files temporarily commented out for debugging -->
-    <!-- <script src="{{ asset('js/api-client.js') }}"></script>
-    <script src="{{ asset('js/main.js') }}"></script> -->
+      <!-- External JS files -->
+    <script src="{{ asset('js/api-client.js') }}"></script>
+    <script src="{{ asset('js/main.js') }}"></script>
 
     @stack('scripts')
 </body>

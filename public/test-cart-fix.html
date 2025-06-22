@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Fix Test - E-smooth Online</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 2rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            margin: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        #test-results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cart Fix Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: addToCart Function</h2>
+        <p>Click the button below to test if addToCart is defined and working:</p>
+        <button class="btn" onclick="testAddToCart()">Test Add to Cart</button>
+        <button class="btn" onclick="addToCart(1, 'Test Product', 19.99, 'https://via.placeholder.com/100')">Add Sample Product</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Cart Display</h2>
+        <p>Current cart contents:</p>
+        <div id="cart-display"></div>
+        <button class="btn" onclick="displayCart()">Refresh Cart Display</button>
+        <button class="btn" onclick="clearTestCart()">Clear Cart</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Console Checks</h2>
+        <p>Check browser console for JavaScript errors:</p>
+        <button class="btn" onclick="runConsoleTests()">Run Console Tests</button>
+    </div>
+      <div class="test-section">
+        <h2>Test 5: Cart Notifications</h2>
+        <p>Test all cart notification types:</p>
+        <button class="btn" onclick="testAllNotifications()">Test All Notifications</button>
+        <button class="btn" onclick="testRemoveNotification()">Test Remove Item</button>
+        <button class="btn" onclick="testClearNotification()">Test Clear Cart</button>
+        <button class="btn" onclick="testUpdateNotification()">Test Update Quantity</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Cart Count Badge</h2>
+        <p>Test the cart count badge functionality:</p>
+        <div style="background: #333; color: white; padding: 1rem; margin: 1rem 0; border-radius: 4px;">
+            <span>Cart Icon: 🛒 </span>
+            <span style="background: #dc3545; color: white; border-radius: 50%; padding: 0.2rem 0.5rem; font-size: 0.8rem;" id="test-cart-count">0</span>
+        </div>
+        <button class="btn" onclick="testCartCount()">Test Cart Count</button>
+        <button class="btn" onclick="addMultipleItems()">Add Multiple Items</button>
+        <button class="btn" onclick="updateTestCartDisplay()">Update Display</button>
+    </div>
+    
+    <div id="test-results"></div>
+
+    <script>
+        // Test notification function
+        function showNotification(message, type = 'info') {
+            const resultsDiv = document.getElementById('test-results');
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        function testAddToCart() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h3>Test Results:</h3>';
+            
+            // Test 1: Function exists
+            if (typeof addToCart === 'function') {
+                showNotification('✓ addToCart function is defined', 'success');
+            } else {
+                showNotification('✗ addToCart function is NOT defined', 'error');
+                return;
+            }
+            
+            // Test 2: Function execution
+            try {
+                addToCart(999, 'Test Product', 29.99, 'https://via.placeholder.com/100');
+                showNotification('✓ addToCart executed without errors', 'success');
+            } catch (error) {
+                showNotification('✗ addToCart execution failed: ' + error.message, 'error');
+            }
+            
+            // Test 3: localStorage update
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const testItem = cart.find(item => item.id === 999);
+            if (testItem) {
+                showNotification('✓ Product added to localStorage cart', 'success');
+            } else {
+                showNotification('✗ Product NOT found in localStorage cart', 'error');
+            }
+        }
+        
+        function displayCart() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartDisplay = document.getElementById('cart-display');
+            
+            if (cart.length === 0) {
+                cartDisplay.innerHTML = '<p>Cart is empty</p>';
+            } else {
+                cartDisplay.innerHTML = '<ul>' + 
+                    cart.map(item => `<li>${item.name} - $${item.price} (Qty: ${item.quantity})</li>`).join('') +
+                    '</ul>';
+            }
+        }
+        
+        function clearTestCart() {
+            localStorage.removeItem('cart');
+            displayCart();
+            showNotification('Cart cleared', 'success');
+        }
+          function runConsoleTests() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h3>Console Test Results:</h3>';
+            
+            // Test global functions
+            const functions = ['addToCart', 'updateCartCount', 'showNotification', 'toggleTheme'];
+            functions.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    showNotification(`✓ ${func} is available globally`, 'success');
+                } else {
+                    showNotification(`✗ ${func} is NOT available globally`, 'error');
+                }
+            });
+            
+            // Test localStorage
+            try {
+                localStorage.setItem('test', 'value');
+                localStorage.removeItem('test');
+                showNotification('✓ localStorage is working', 'success');
+            } catch (error) {
+                showNotification('✗ localStorage error: ' + error.message, 'error');
+            }
+        }
+        
+        function testCartCount() {
+            const results = document.getElementById('test-results');
+            results.innerHTML += '<h3>Cart Count Test Results:</h3>';
+            
+            // Clear cart first
+            localStorage.removeItem('cart');
+            updateTestCartDisplay();
+            
+            // Test initial count
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            showNotification(`Cart count should be 0: ${cart.length}`, cart.length === 0 ? 'success' : 'error');
+            
+            // Add an item
+            if (typeof addToCart === 'function') {
+                addToCart(1001, 'Test Item 1', 15.99, 'https://via.placeholder.com/100');
+                const newCart = JSON.parse(localStorage.getItem('cart')) || [];
+                showNotification(`After adding 1 item: ${newCart.length} items, ${newCart.reduce((sum, item) => sum + item.quantity, 0)} total quantity`, 'success');
+            }
+            
+            updateTestCartDisplay();
+        }
+        
+        function addMultipleItems() {
+            // Add several items to test cart count
+            addToCart(2001, 'Item A', 10.00, 'https://via.placeholder.com/100');
+            addToCart(2002, 'Item B', 20.00, 'https://via.placeholder.com/100');
+            addToCart(2001, 'Item A', 10.00, 'https://via.placeholder.com/100'); // Add same item to increase quantity
+            updateTestCartDisplay();
+        }
+          function updateTestCartDisplay() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const testCartCount = document.getElementById('test-cart-count');
+            if (testCartCount) {
+                testCartCount.textContent = totalItems;
+                testCartCount.style.display = totalItems > 0 ? 'inline' : 'none';
+            }
+            
+            // Also call the global updateCartCount if it exists
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+            displayCart();
+        }
+        
+        function testAllNotifications() {
+            showNotification('Testing all notification types...', 'info');
+            
+            setTimeout(() => {
+                showNotification('Success notification test!', 'success');
+            }, 1000);
+            
+            setTimeout(() => {
+                showNotification('Warning notification test!', 'warning');
+            }, 2000);
+            
+            setTimeout(() => {
+                showNotification('Error notification test!', 'error');
+            }, 3000);
+        }
+          function testRemoveNotification() {
+            // Add a test item first
+            addToCart(9001, 'Test Remove Item', 5.99, 'https://via.placeholder.com/100');
+            
+            setTimeout(() => {
+                // Remove the item to test notification
+                let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                cart = cart.filter(item => item.id !== 9001);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateTestCartDisplay();
+                showNotification('Product removed from cart!', 'success');
+            }, 1000);
+        }
+        
+        function testClearNotification() {
+            // Add some items first
+            addToCart(9002, 'Test Item A', 10.00, 'https://via.placeholder.com/100');
+            addToCart(9003, 'Test Item B', 15.00, 'https://via.placeholder.com/100');
+            
+            setTimeout(() => {
+                // Clear cart to test notification
+                localStorage.removeItem('cart');
+                updateTestCartDisplay();
+                showNotification('Cart cleared successfully!', 'success');
+            }, 1000);
+        }
+        
+        function testUpdateNotification() {
+            // Add a test item first
+            addToCart(9004, 'Test Update Item', 8.99, 'https://via.placeholder.com/100');
+            
+            setTimeout(() => {
+                // Update quantity to test notification
+                let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                const item = cart.find(item => item.id === 9004);
+                if (item) {
+                    item.quantity = 3;
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    updateTestCartDisplay();
+                    showNotification('Cart updated successfully!', 'success');
+                }
+            }, 1000);
+        }
+          // Initialize cart display on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            displayCart();
+            updateTestCartDisplay();
+            showNotification('Page loaded successfully', 'success');
+        });
+    </script>
+</body>
+</html>
