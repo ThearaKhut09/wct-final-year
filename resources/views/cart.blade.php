@@ -356,23 +356,36 @@
             showNotification('Cart updated successfully!', 'success');
         }
     }    function removeItem(productId) {
-        if (confirm('Are you sure you want to remove this item from your cart?')) {
-            cart = cart.filter(item => item.id !== productId);
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-            renderCart();
-            showNotification('Product removed from cart!', 'success');
+        // Create custom confirmation dialog
+        const item = cart.find(item => item.id === productId);
+        if (item) {
+            createConfirmDialog(
+                'Remove Item',
+                `Are you sure you want to remove "${item.name}" from your cart?`,
+                () => {
+                    cart = cart.filter(item => item.id !== productId);
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    updateCartCount();
+                    renderCart();
+                    showNotification('Product removed from cart!', 'success');
+                }
+            );
         }
     }
 
     function clearCart() {
-        if (confirm('Are you sure you want to clear your entire cart?')) {
-            cart = [];
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-            renderCart();
-            showNotification('Cart cleared successfully!', 'success');
-        }
+        // Create custom confirmation dialog
+        createConfirmDialog(
+            'Clear Cart',
+            'Are you sure you want to clear your entire cart? This action cannot be undone.',
+            () => {
+                cart = [];
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateCartCount();
+                renderCart();
+                showNotification('Cart cleared successfully!', 'success');
+            }
+        );
     }
 
     function proceedToCheckout() {
@@ -422,9 +435,7 @@
         updateCartCount();
         renderCart();
         showNotification('Test products added to cart!', 'success');
-    }
-
-    // Initialize cart on page load
+    }    // Initialize cart on page load
     document.addEventListener('DOMContentLoaded', function() {
         renderCart();
         
@@ -444,6 +455,113 @@
             }, 100);
         }
     });
+
+    // Custom confirmation dialog function
+    function createConfirmDialog(title, message, onConfirm) {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        `;
+
+        // Create dialog
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: slideIn 0.3s ease;
+            color: var(--text-primary);
+        `;
+
+        // Check for dark theme
+        if (document.documentElement.getAttribute('data-theme') === 'dark') {
+            dialog.style.background = 'var(--dark-color)';
+            dialog.style.border = '1px solid var(--border-color)';
+        }
+
+        dialog.innerHTML = `
+            <div style="text-align: center;">
+                <div style="background: var(--danger-color); color: white; width: 4rem; height: 4rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 style="margin-bottom: 1rem; color: var(--text-primary);">${title}</h3>
+                <p style="margin-bottom: 2rem; color: var(--text-secondary); line-height: 1.5;">${message}</p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button id="cancelBtn" class="btn btn-outline" style="flex: 1;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button id="confirmBtn" class="btn btn-primary" style="flex: 1; background: var(--danger-color);">
+                        <i class="fas fa-check"></i> Confirm
+                    </button>
+                </div>
+            </div>
+        `;
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // Add event listeners
+        const cancelBtn = dialog.querySelector('#cancelBtn');
+        const confirmBtn = dialog.querySelector('#confirmBtn');
+
+        const closeDialog = () => {
+            overlay.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+            }, 300);
+        };
+
+        cancelBtn.addEventListener('click', closeDialog);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeDialog();
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            onConfirm();
+            closeDialog();
+        });
+
+        // Add CSS animations
+        if (!document.querySelector('#confirmDialogStyles')) {
+            const style = document.createElement('style');
+            style.id = 'confirmDialogStyles';
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+                @keyframes slideIn {
+                    from { 
+                        transform: translateY(-20px);
+                        opacity: 0;
+                    }
+                    to { 
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
 </script>
 @endpush
 @endsection
