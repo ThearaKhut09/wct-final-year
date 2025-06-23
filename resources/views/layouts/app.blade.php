@@ -69,18 +69,49 @@
             const userData = localStorage.getItem('user_data');
             const authSection = document.getElementById('authSection');
             
+            console.log('updateAuthUI called:', {
+                hasToken: !!token,
+                hasUserData: !!userData,
+                hasAuthSection: !!authSection,
+                currentContent: authSection ? authSection.innerHTML : 'no auth section'
+            });
+            
+            if (!authSection) {
+                console.error('authSection not found!');
+                return;
+            }
+            
             if (token && userData) {
-                const user = JSON.parse(userData);
-                authSection.innerHTML = `
-                    <div class="user-menu" style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="color: var(--text-primary);">Welcome, ${user.name}</span>
-                        <a href="{{ route('profile') }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Profile</a>
-                        <button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Logout</button>
-                    </div>
-                `;
+                try {
+                    const user = JSON.parse(userData);
+                    const firstName = user.name ? user.name.split(' ')[0] : 'User';
+                    console.log('Setting authenticated UI for user:', firstName);
+                    
+                    authSection.innerHTML = `
+                        <div class="user-menu" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <span style="color: var(--text-primary); white-space: nowrap;">Welcome, ${firstName}!</span>
+                            <a href="/profile" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;" title="My Profile">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    `;
+                    console.log('Auth UI updated successfully');
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    // Clear invalid data
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_data');
+                    authSection.innerHTML = `
+                        <a href="/login" class="btn btn-primary">Login</a>
+                    `;
+                }
             } else {
+                console.log('No auth data, showing login button');
                 authSection.innerHTML = `
-                    <a href="{{ route('login') }}" class="btn btn-primary">Login</a>
+                    <a href="/login" class="btn btn-primary">Login</a>
                 `;
             }
         }
@@ -139,6 +170,12 @@
             
             // Initialize authentication UI
             updateAuthUI();
+            
+            // Check authentication status on page load
+            checkAuthenticationStatus();
+            
+            // Also update auth UI periodically in case of storage changes
+            setInterval(updateAuthUI, 5000);
         });
 
         // Add notification animation styles
@@ -670,39 +707,8 @@
             showNotification('Product added to cart!', 'success');
         }
 
-        // Authentication Management        function updateAuthUI() {
-            const authSection = document.getElementById('authSection');
-            if (!authSection) return;
-            
-            const userData = localStorage.getItem('user_data');
-            const token = localStorage.getItem('auth_token');
-            
-            if (userData && token) {
-                try {
-                    const user = JSON.parse(userData);
-                    authSection.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <span style="color: var(--text-primary);">Welcome, ${user.name.split(' ')[0]}!</span>
-                            <a href="{{ route('profile') }}" class="btn btn-outline" title="My Profile">
-                                <i class="fas fa-user"></i>
-                            </a>
-                            <button class="btn btn-secondary" onclick="logout()">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </button>
-                        </div>
-                    `;
-                } catch (e) {
-                    console.error('Error parsing user data:', e);
-                    authSection.innerHTML = `
-                        <a href="{{ route('login') }}" class="btn btn-primary" id="loginBtn">Login</a>
-                    `;
-                }
-            } else {
-                authSection.innerHTML = `
-                    <a href="{{ route('login') }}" class="btn btn-primary" id="loginBtn">Login</a>
-                `;
-            }
-        }        async function logout() {
+        // Authentication Management
+        async function logout() {
             try {
                 const token = localStorage.getItem('auth_token');
                 if (token) {
@@ -775,10 +781,15 @@
             // Load theme first
             loadTheme();
             
-            // Initialize other functions
-            updateCartCount();
-            updateAuthUI();
-            checkAuthenticationStatus();
+            // Wait a moment for all elements to be rendered
+            setTimeout(() => {
+                // Initialize other functions
+                updateCartCount();
+                updateAuthUI();
+                checkAuthenticationStatus();
+                
+                console.log('Auth section after init:', document.getElementById('authSection'));
+            }, 100);
             
             // Add theme toggle event listener as backup
             const themeToggle = document.getElementById('themeToggleBtn');
@@ -796,6 +807,19 @@
 
         // Make updateCartCount available globally
         window.updateCartCount = updateCartCount;
+        
+        // Make updateAuthUI available globally
+        window.updateAuthUI = updateAuthUI;
+        
+        // Debug function to manually test auth UI
+        window.debugAuth = function() {
+            console.log('=== AUTH DEBUG ===');
+            console.log('Token:', localStorage.getItem('auth_token'));
+            console.log('User Data:', localStorage.getItem('user_data'));
+            console.log('Auth Section Element:', document.getElementById('authSection'));
+            updateAuthUI();
+            console.log('=== END DEBUG ===');
+        };
 
         // Check authentication status
         async function checkAuthenticationStatus() {
@@ -818,11 +842,24 @@
                         localStorage.removeItem('auth_token');
                         localStorage.removeItem('user_data');
                         updateAuthUI();
+                        // Redirect to login if on a protected page
+                        if (window.location.pathname === '/profile') {
+                            window.location.href = '/login';
+                        }
+                    } else {
+                        // Update auth UI to reflect logged in state
+                        updateAuthUI();
                     }
                 } catch (error) {
                     console.error('Auth check error:', error);
-                    // On network error, keep the stored auth data                }
-            }        }
+                    // On network error, keep the stored auth data but update UI
+                    updateAuthUI();
+                }
+            } else {
+                // No auth data, update UI to show login
+                updateAuthUI();
+            }
+        }
 
     </script>
       <!-- External JS files -->

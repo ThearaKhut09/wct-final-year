@@ -214,27 +214,40 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         
         const result = await response.json();
         console.log('Login response:', result);
-        
-        if (response.ok && result.success) {
+          if (response.ok && result.success) {
             // Store user data and token
             localStorage.setItem('auth_token', result.data.access_token);
             localStorage.setItem('user_data', JSON.stringify(result.data.user));
+              showNotification('Login successful! Welcome back!', 'success');
             
-            showNotification('Login successful! Welcome back!', 'success');
-            
-            // Update UI to show logged in state
+            // Update UI to show logged in state immediately
+            console.log('About to call updateAuthUI after login');
             if (typeof updateAuthUI === 'function') {
                 updateAuthUI();
+                console.log('updateAuthUI called successfully');
+            } else if (typeof window.updateAuthUI === 'function') {
+                window.updateAuthUI();
+                console.log('window.updateAuthUI called successfully');
+            } else {
+                console.error('updateAuthUI function not found!');
             }
-            
-            // Redirect based on user role
+              // Small delay to show the success message and updated UI
             setTimeout(() => {
+                // Redirect based on user role
                 if (result.data.user.role === 'admin') {
                     window.location.href = '/admin';
                 } else {
-                    window.location.href = '/';
+                    // Check if there's a redirect parameter, otherwise go to profile
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect');
+                    if (redirect) {
+                        window.location.href = redirect;
+                    } else {
+                        // Redirect to profile to show the user they're logged in
+                        window.location.href = '/profile?welcome=true';
+                    }
                 }
-            }, 1000);
+            }, 1500);
             
         } else {
             // Handle error responses

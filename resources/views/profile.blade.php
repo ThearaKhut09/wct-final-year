@@ -248,21 +248,38 @@ function switchTab(tabName) {
 
 function loadProfile() {
     const userData = localStorage.getItem('user_data');
-    if (userData) {
-        const user = JSON.parse(userData);
-        document.getElementById('profileName').textContent = user.name || 'User';
-        document.getElementById('profileEmail').textContent = user.email || '';
-        document.getElementById('memberSince').textContent = new Date(user.created_at || Date.now()).toLocaleDateString();
-        
-        // Fill form
-        const names = user.name ? user.name.split(' ') : ['', ''];
-        document.getElementById('firstName').value = names[0] || '';
-        document.getElementById('lastName').value = names.slice(1).join(' ') || '';
-        document.getElementById('email').value = user.email || '';
-        document.getElementById('phone').value = user.phone || '';
-        document.getElementById('address').value = user.address || '';
+    const token = localStorage.getItem('auth_token');
+    
+    if (userData && token) {
+        try {
+            const user = JSON.parse(userData);
+            document.getElementById('profileName').textContent = user.name || 'User';
+            document.getElementById('profileEmail').textContent = user.email || '';
+            document.getElementById('memberSince').textContent = new Date(user.created_at || Date.now()).toLocaleDateString();
+            
+            // Fill form
+            const names = user.name ? user.name.split(' ') : ['', ''];
+            document.getElementById('firstName').value = names[0] || '';
+            document.getElementById('lastName').value = names.slice(1).join(' ') || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('phone').value = user.phone || '';
+            document.getElementById('address').value = user.address || '';
+            
+            // Show welcome message if just logged in
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('welcome') === 'true') {
+                setTimeout(() => {
+                    showNotification('Welcome to your profile! You can update your information here.', 'success');
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Error parsing user data:', error);
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = '/login';
+        }
     } else {
-        window.location.href = '/login';
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
     }
 }
 

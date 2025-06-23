@@ -217,8 +217,7 @@
             });
             
             const result = await response.json();
-            
-            if (result.success) {
+              if (result.success) {
                 // Store user data and token
                 localStorage.setItem('auth_token', result.data.access_token);
                 localStorage.setItem('user_data', JSON.stringify(result.data.user));
@@ -226,11 +225,12 @@
                 showNotification('Account created successfully! Welcome to E-smooth Online!', 'success');
                 
                 // Update UI to show logged in state
-                updateAuthUI();
-                
-                // Redirect to home page
+                if (typeof updateAuthUI === 'function') {
+                    updateAuthUI();
+                }
+                  // Redirect to profile page with welcome message
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.href = '/profile?welcome=true';
                 }, 1500);
                 
             } else {
