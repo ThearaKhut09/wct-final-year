@@ -1,6 +1,6 @@
 /* E-smooth Online - Main Styles */
 
-/* CSS Variables for consistent theming */
+/* Enhanced CSS Variables for consistent theming */
 :root {
     --primary-color: #2563eb;
     --primary-dark: #1d4ed8;
@@ -13,11 +13,12 @@
     --border-color: #e2e8f0;
     --text-primary: #0f172a;
     --text-secondary: #64748b;
+    --card-bg: #ffffff;
     --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s ease;
 }
 
-/* Dark mode variables */
+/* Enhanced Dark mode variables */
 [data-theme="dark"] {
     --primary-color: #3b82f6;
     --primary-dark: #2563eb;
@@ -27,16 +28,17 @@
     --border-color: #334155;
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
+    --card-bg: #1e293b;
     --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 }
 
-/* Dark mode body override */
+/* Force dark mode body styles */
 [data-theme="dark"] body {
     background-color: #0f172a !important;
     color: #f1f5f9 !important;
 }
 
-/* Base styles */
+/* Enhanced base styles with better dark mode support */
 * {
     margin: 0;
     padding: 0;
@@ -51,24 +53,31 @@ body {
     transition: var(--transition);
 }
 
+/* Ensure smooth transitions for all elements */
+*, *::before, *::after {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* Navigation */
+/* Enhanced Navigation with better dark mode */
 .navbar {
-    background: white;
+    background: var(--card-bg);
     box-shadow: var(--box-shadow);
     position: sticky;
     top: 0;
     z-index: 1000;
     transition: var(--transition);
+    border-bottom: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .navbar {
     background: var(--dark-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .nav-container {
@@ -439,6 +448,86 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Enhanced Dark Mode Styles */
+[data-theme="dark"] {
+    /* Cards and containers */
+    .card, .product-card, .category-card, .feature-card {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    /* Form elements */
+    input, textarea, select {
+        background: var(--card-bg) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+    }
+    
+    input::placeholder, textarea::placeholder {
+        color: var(--text-secondary) !important;
+    }
+    
+    /* Modal and dropdown backgrounds */
+    .modal, .dropdown-menu {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--border-color);
+    }
+    
+    /* Table styles */
+    table {
+        background: var(--card-bg) !important;
+        color: var(--text-primary);
+    }
+    
+    th, td {
+        border-color: var(--border-color) !important;
+    }
+    
+    /* Ensure text remains readable */
+    h1, h2, h3, h4, h5, h6, p, span, div, a {
+        color: var(--text-primary);
+    }
+    
+    /* Specific dark mode fixes */
+    .text-muted {
+        color: var(--text-secondary) !important;
+    }
+    
+    /* Ensure form controls are visible */
+    .form-control, .form-select {
+        background-color: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    }
+}
+
+/* Smooth theme transitions */
+body, .navbar, .card, .product-card, .category-card,
+input, textarea, select, .modal, .dropdown-menu, table {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* Debug styles - remove in production */
+.theme-debug {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 12px;
+    z-index: 9999;
+    display: none; /* Hidden by default */
 }
 
 /* Responsive Design */

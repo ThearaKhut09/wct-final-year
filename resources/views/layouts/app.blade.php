@@ -10,23 +10,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
       <!-- Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- JavaScript Functions -->
-    <script>        function toggleTheme() {
+      <!-- JavaScript Functions -->
+    <script>
+        // Enhanced Theme Toggle Function
+        function toggleTheme() {
+            console.log('Theme toggle function called');
             const html = document.documentElement;
             const themeIcon = document.getElementById('themeIcon');
             const currentTheme = html.getAttribute('data-theme');
             
             if (currentTheme === 'dark') {
                 html.removeAttribute('data-theme');
+                html.setAttribute('data-theme', 'light');
                 if (themeIcon) themeIcon.className = 'fas fa-moon';
                 localStorage.setItem('theme', 'light');
+                console.log('Switched to light theme');
             } else {
                 html.setAttribute('data-theme', 'dark');
                 if (themeIcon) themeIcon.className = 'fas fa-sun';
                 localStorage.setItem('theme', 'dark');
+                console.log('Switched to dark theme');
             }
-        }        // Notification system
+            
+            // Force reflow to ensure theme change is applied
+            html.offsetHeight;
+        }
+
+        // Notification system
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -101,18 +111,31 @@
                     showNotification('Logged out!', 'info');
                 });
             }
-        }        // Load saved theme on page load
+        }        // Enhanced theme loading on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('theme');
+            console.log('DOM loaded - initializing theme...');
+            const savedTheme = localStorage.getItem('theme') || 'light';
             const themeIcon = document.getElementById('themeIcon');
+            const html = document.documentElement;
             
+            console.log('Saved theme:', savedTheme);
+            
+            // Apply theme
             if (savedTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
+                html.setAttribute('data-theme', 'dark');
                 if (themeIcon) themeIcon.className = 'fas fa-sun';
+                console.log('Applied dark theme');
             } else {
-                document.documentElement.removeAttribute('data-theme');
+                html.removeAttribute('data-theme');
+                html.setAttribute('data-theme', 'light');
                 if (themeIcon) themeIcon.className = 'fas fa-moon';
+                console.log('Applied light theme');
             }
+            
+            // Force a repaint
+            html.style.display = 'none';
+            html.offsetHeight;
+            html.style.display = '';
             
             // Initialize authentication UI
             updateAuthUI();
@@ -137,8 +160,8 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    
-    <style>
+      <style>
+        /* Enhanced CSS Variables with better dark mode support */
         :root {
             --primary-color: #2563eb;
             --primary-dark: #1d4ed8;
@@ -151,19 +174,34 @@
             --border-color: #e2e8f0;
             --text-primary: #0f172a;
             --text-secondary: #64748b;
+            --card-bg: #ffffff;
             --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
         }
 
+        /* Enhanced Dark theme variables */
         [data-theme="dark"] {
             --primary-color: #3b82f6;
+            --primary-dark: #2563eb;
             --secondary-color: #94a3b8;
             --dark-color: #0f172a;
             --light-color: #1e293b;
             --border-color: #334155;
             --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
+            --card-bg: #1e293b;
             --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Force dark mode background */
+        [data-theme="dark"] body {
+            background-color: #0f172a !important;
+            color: #f1f5f9 !important;
+        }
+
+        /* Ensure smooth transitions */
+        *, *::before, *::after {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         * {
@@ -178,16 +216,15 @@
             color: var(--text-primary);
             line-height: 1.6;
             transition: var(--transition);
-        }
-
-        /* Header Styles */
+        }        /* Enhanced Header Styles with better dark mode */
         .header {
-            background: white;
+            background: var(--card-bg);
             box-shadow: var(--box-shadow);
             position: sticky;
             top: 0;
             z-index: 1000;
             transition: var(--transition);
+            border-bottom: 1px solid var(--border-color);
         }
 
         [data-theme="dark"] .header {
@@ -402,22 +439,22 @@
         @media (max-width: 768px) {
             .mobile-menu-toggle {
                 display: block;
-            }
-
-            .nav-links {
+            }            .nav-links {
                 display: none;
                 position: absolute;
                 top: 100%;
                 left: 0;
                 right: 0;
-                background: white;
+                background: var(--card-bg);
                 box-shadow: var(--box-shadow);
                 padding: 1rem;
                 flex-direction: column;
+                border-top: 1px solid var(--border-color);
             }
 
             [data-theme="dark"] .nav-links {
                 background: var(--dark-color);
+                border-top: 1px solid var(--border-color);
             }
 
             .nav-links.active {
@@ -504,20 +541,9 @@
         </div>
     </footer>    <!-- JavaScript -->
     <script>
-        console.log('Script is loading...');
-        
-        // Test function to verify JavaScript is working
-        function testClick() {
-            console.log('TEST Button clicked! JavaScript is working.');
-            alert('JavaScript is working!');
-        }
-        
-        console.log('testClick function defined:', typeof testClick);
-        
-        // Make functions globally accessible
-        window.testClick = testClick;
+        console.log('Enhanced E-smooth Online Script Loading...');
 
-        // Theme Toggle
+        // Enhanced Theme Toggle
         function toggleTheme() {
             console.log('toggleTheme() function called');
             
@@ -527,16 +553,14 @@
                 const currentTheme = body.getAttribute('data-theme');
                 
                 console.log('Current theme before toggle:', currentTheme);
-                console.log('Theme icon element:', themeIcon);
                 
                 if (currentTheme === 'dark') {
-                    body.removeAttribute('data-theme');
+                    body.setAttribute('data-theme', 'light');
                     if (themeIcon) {
                         themeIcon.className = 'fas fa-moon';
                         console.log('Switched to light mode, icon changed to moon');
                     }
                     localStorage.setItem('theme', 'light');
-                    console.log('Theme stored as light in localStorage');
                 } else {
                     body.setAttribute('data-theme', 'dark');
                     if (themeIcon) {
@@ -544,10 +568,11 @@
                         console.log('Switched to dark mode, icon changed to sun');
                     }
                     localStorage.setItem('theme', 'dark');
-                    console.log('Theme stored as dark in localStorage');
                 }
                 
-                // Verify the change                console.log('New theme after toggle:', document.documentElement.getAttribute('data-theme') || 'light');
+                // Force reflow
+                body.offsetHeight;
+                console.log('New theme after toggle:', document.documentElement.getAttribute('data-theme'));
                 
             } catch (error) {
                 console.error('Error in toggleTheme():', error);
@@ -555,32 +580,29 @@
         }
         
         // Make toggleTheme globally accessible
-        window.toggleTheme = toggleTheme;// Load saved theme
+        window.toggleTheme = toggleTheme;
+
+        // Enhanced Load Theme
         function loadTheme() {
             console.log('loadTheme() function called');
             
             try {
-                const savedTheme = localStorage.getItem('theme');
+                const savedTheme = localStorage.getItem('theme') || 'light';
                 const themeIcon = document.getElementById('themeIcon');
+                const body = document.documentElement;
                 
-                console.log('Saved theme from localStorage:', savedTheme);
-                console.log('Theme icon element found:', !!themeIcon);
+                console.log('Loading saved theme:', savedTheme);
                 
-                if (savedTheme === 'dark') {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    if (themeIcon) {
-                        themeIcon.className = 'fas fa-sun';
-                        console.log('Applied dark theme, icon set to sun');
-                    }
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    if (themeIcon) {
-                        themeIcon.className = 'fas fa-moon';
-                        console.log('Applied light theme, icon set to moon');
-                    }
+                body.setAttribute('data-theme', savedTheme);
+                
+                if (themeIcon) {
+                    themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    console.log('Theme icon updated for', savedTheme, 'theme');
                 }
                 
-                console.log('Theme loaded successfully. Current theme:', document.documentElement.getAttribute('data-theme') || 'light');
+                // Force reflow
+                body.offsetHeight;
+                console.log('Theme loaded successfully:', savedTheme);
                 
             } catch (error) {
                 console.error('Error in loadTheme():', error);
@@ -746,14 +768,30 @@
                 }
             }
         `;
-        document.head.appendChild(style);          // Initialize
+        document.head.appendChild(style);        // Enhanced initialization
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - enhanced initialization...');
+            
+            // Load theme first
             loadTheme();
+            
+            // Initialize other functions
             updateCartCount();
             updateAuthUI();
-            
-            // Also check authentication status on page load
             checkAuthenticationStatus();
+            
+            // Add theme toggle event listener as backup
+            const themeToggle = document.getElementById('themeToggleBtn');
+            if (themeToggle) {
+                console.log('Adding theme toggle event listener');
+                themeToggle.addEventListener('click', function(e) {
+                    console.log('Theme toggle clicked via event listener');
+                    e.preventDefault();
+                    toggleTheme();
+                });
+            }
+            
+            console.log('Enhanced initialization complete');
         });
 
         // Make updateCartCount available globally
@@ -783,41 +821,10 @@
                     }
                 } catch (error) {
                     console.error('Auth check error:', error);
-                    // On network error, keep the stored auth data
-                }
+                    // On network error, keep the stored auth data                }
             }        }
 
-        // Add click event listener as backup
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, setting up theme functionality...');
-            
-            // Load theme first
-            loadTheme();
-            
-            // Add event listener to theme toggle button
-            const themeToggle = document.getElementById('themeToggleBtn');
-            if (themeToggle) {
-                console.log('Theme toggle button found, adding event listener');
-                themeToggle.addEventListener('click', function() {
-                    console.log('Theme toggle clicked via event listener');
-                    toggleTheme();
-                });
-            } else {
-                console.log('Theme toggle button NOT found');
-            }
-              // Test CSS variables
-            const computedStyle = getComputedStyle(document.documentElement);
-            console.log('CSS Variables test:');
-            console.log('--primary-color:', computedStyle.getPropertyValue('--primary-color'));
-            console.log('--text-primary:', computedStyle.getPropertyValue('--text-primary'));
-            console.log('--light-color:', computedStyle.getPropertyValue('--light-color'));
-              console.log('Theme initialization complete.');
-            
-            // Test function availability
-            console.log('Functions available:');
-            console.log('testClick:', typeof window.testClick);
-            console.log('toggleTheme:', typeof window.toggleTheme);
-        });</script>
+    </script>
       <!-- External JS files -->
     <script src="{{ asset('js/api-client.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>

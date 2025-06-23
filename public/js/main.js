@@ -43,8 +43,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSearch();
 });
 
-// Theme Management
+// Theme Management (Enhanced compatibility)
 function initializeTheme() {
+    console.log('Main.js: initializeTheme called');
+    
+    // Check if theme is already handled by main layout
+    if (typeof window.toggleTheme === 'function') {
+        console.log('Main.js: Theme already initialized by layout, skipping...');
+        return;
+    }
+    
     const themeToggle = document.querySelector('.theme-toggle');
     const currentTheme = localStorage.getItem('theme') || 'light';
     
@@ -56,11 +64,12 @@ function initializeTheme() {
     
     // Add event listener
     if (themeToggle) {
-        themeToggle.addEventListener('click', toggleTheme);
+        themeToggle.addEventListener('click', toggleThemeLocal);
     }
 }
 
-function toggleTheme() {
+function toggleThemeLocal() {
+    console.log('Main.js: toggleThemeLocal called');
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     
