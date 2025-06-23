@@ -12,30 +12,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
       <!-- JavaScript Functions -->
     <script>
-        // Enhanced Theme Toggle Function
-        function toggleTheme() {
-            console.log('Theme toggle function called');
-            const html = document.documentElement;
-            const themeIcon = document.getElementById('themeIcon');
-            const currentTheme = html.getAttribute('data-theme');
-            
-            if (currentTheme === 'dark') {
-                html.removeAttribute('data-theme');
-                html.setAttribute('data-theme', 'light');
-                if (themeIcon) themeIcon.className = 'fas fa-moon';
-                localStorage.setItem('theme', 'light');
-                console.log('Switched to light theme');
-            } else {
-                html.setAttribute('data-theme', 'dark');
-                if (themeIcon) themeIcon.className = 'fas fa-sun';
-                localStorage.setItem('theme', 'dark');
-                console.log('Switched to dark theme');
-            }
-            
-            // Force reflow to ensure theme change is applied
-            html.offsetHeight;
-        }
-
         // Notification system
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
@@ -142,57 +118,49 @@
                     showNotification('Logged out!', 'info');
                 });
             }
-        }        // Enhanced theme loading on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded - initializing theme...');
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            const themeIcon = document.getElementById('themeIcon');
-            const html = document.documentElement;
-            
-            console.log('Saved theme:', savedTheme);
-            
-            // Apply theme
-            if (savedTheme === 'dark') {
-                html.setAttribute('data-theme', 'dark');
-                if (themeIcon) themeIcon.className = 'fas fa-sun';
-                console.log('Applied dark theme');
-            } else {
-                html.removeAttribute('data-theme');
-                html.setAttribute('data-theme', 'light');
-                if (themeIcon) themeIcon.className = 'fas fa-moon';
-                console.log('Applied light theme');
-            }
-            
-            // Force a repaint
-            html.style.display = 'none';
-            html.offsetHeight;
-            html.style.display = '';
-            
-            // Initialize authentication UI
-            updateAuthUI();
-            
-            // Check authentication status on page load
-            checkAuthenticationStatus();
-            
-            // Also update auth UI periodically in case of storage changes
-            setInterval(updateAuthUI, 5000);
-        });
+        }
 
-        // Add notification animation styles
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
+        // Check authentication status
+        async function checkAuthenticationStatus() {
+            const token = localStorage.getItem('auth_token');
+            const userData = localStorage.getItem('user_data');
+            
+            if (token && userData) {
+                try {
+                    // Verify token is still valid
+                    const response = await fetch('/api/profile', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        // Token is invalid, clear localStorage
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_data');
+                        updateAuthUI();
+                        // Redirect to login if on a protected page
+                        if (window.location.pathname === '/profile') {
+                            window.location.href = '/login';
+                        }
+                    } else {
+                        // Update auth UI to reflect logged in state
+                        updateAuthUI();
+                    }
+                } catch (error) {
+                    console.error('Auth check error:', error);
+                    // On network error, keep the stored auth data but update UI
+                    updateAuthUI();
                 }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
+            } else {
+                // No auth data, update UI to show login
+                updateAuthUI();
             }
-        `;
-        document.head.appendChild(style);
+        }
+
+        // Add notification animation styles (consolidated)
     </script>
     
     <!-- Custom CSS -->
@@ -217,7 +185,7 @@
         }
 
         /* Enhanced Dark theme variables */
-        [data-theme="dark"] {
+        html[data-theme="dark"] {
             --primary-color: #3b82f6;
             --primary-dark: #2563eb;
             --secondary-color: #94a3b8;
@@ -230,10 +198,19 @@
             --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
 
-        /* Force dark mode background */
-        [data-theme="dark"] body {
+        /* Force dark mode background and text */
+        html[data-theme="dark"] body {
             background-color: #0f172a !important;
             color: #f1f5f9 !important;
+        }
+
+        /* Ensure all text elements inherit dark mode colors */
+        html[data-theme="dark"] * {
+            color: inherit;
+        }
+
+        html[data-theme="dark"] .navbar {
+            background: var(--dark-color);
         }
 
         /* Ensure smooth transitions */
@@ -253,6 +230,7 @@
             color: var(--text-primary);
             line-height: 1.6;
             transition: var(--transition);
+            min-height: 100vh;
         }        /* Enhanced Header Styles with better dark mode */
         .header {
             background: var(--card-bg);
@@ -264,13 +242,13 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        [data-theme="dark"] .header {
+        html[data-theme="dark"] .header {
             background: var(--dark-color);
             border-bottom: 1px solid var(--border-color);
         }
 
         .navbar {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 1rem 2rem;
             display: flex;
@@ -489,7 +467,7 @@
                 border-top: 1px solid var(--border-color);
             }
 
-            [data-theme="dark"] .nav-links {
+            html[data-theme="dark"] .nav-links {
                 background: var(--dark-color);
                 border-top: 1px solid var(--border-color);
             }
@@ -585,31 +563,36 @@
             console.log('toggleTheme() function called');
             
             try {
-                const body = document.documentElement;
+                const html = document.documentElement;
                 const themeIcon = document.getElementById('themeIcon');
-                const currentTheme = body.getAttribute('data-theme');
+                const currentTheme = html.getAttribute('data-theme');
                 
                 console.log('Current theme before toggle:', currentTheme);
                 
                 if (currentTheme === 'dark') {
-                    body.setAttribute('data-theme', 'light');
+                    html.setAttribute('data-theme', 'light');
                     if (themeIcon) {
                         themeIcon.className = 'fas fa-moon';
                         console.log('Switched to light mode, icon changed to moon');
                     }
                     localStorage.setItem('theme', 'light');
+                    console.log('Theme saved to localStorage: light');
                 } else {
-                    body.setAttribute('data-theme', 'dark');
+                    html.setAttribute('data-theme', 'dark');
                     if (themeIcon) {
                         themeIcon.className = 'fas fa-sun';
                         console.log('Switched to dark mode, icon changed to sun');
                     }
                     localStorage.setItem('theme', 'dark');
+                    console.log('Theme saved to localStorage: dark');
                 }
                 
-                // Force reflow
-                body.offsetHeight;
-                console.log('New theme after toggle:', document.documentElement.getAttribute('data-theme'));
+                // Force a reflow to ensure theme change is applied immediately
+                html.style.display = 'none';
+                html.offsetHeight;
+                html.style.display = '';
+                
+                console.log('New theme after toggle:', html.getAttribute('data-theme'));
                 
             } catch (error) {
                 console.error('Error in toggleTheme():', error);
@@ -626,20 +609,26 @@
             try {
                 const savedTheme = localStorage.getItem('theme') || 'light';
                 const themeIcon = document.getElementById('themeIcon');
-                const body = document.documentElement;
+                const html = document.documentElement;
                 
                 console.log('Loading saved theme:', savedTheme);
                 
-                body.setAttribute('data-theme', savedTheme);
+                // Apply the theme
+                html.setAttribute('data-theme', savedTheme);
                 
+                // Update the icon
                 if (themeIcon) {
                     themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                     console.log('Theme icon updated for', savedTheme, 'theme');
                 }
                 
-                // Force reflow
-                body.offsetHeight;
+                // Force reflow to ensure styles are applied
+                html.style.display = 'none';
+                html.offsetHeight;
+                html.style.display = '';
+                
                 console.log('Theme loaded successfully:', savedTheme);
+                console.log('HTML data-theme attribute:', html.getAttribute('data-theme'));
                 
             } catch (error) {
                 console.error('Error in loadTheme():', error);
@@ -774,21 +763,34 @@
                 }
             }
         `;
-        document.head.appendChild(style);        // Enhanced initialization
+        document.head.appendChild(style);        // Consolidated initialization
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded - enhanced initialization...');
+            console.log('DOM loaded - consolidated initialization...');
             
-            // Load theme first
+            // Load theme first and ensure it's applied
             loadTheme();
             
             // Wait a moment for all elements to be rendered
             setTimeout(() => {
-                // Initialize other functions
+                // Initialize authentication and cart
                 updateCartCount();
                 updateAuthUI();
                 checkAuthenticationStatus();
                 
+                // Double-check theme is applied
+                const currentTheme = localStorage.getItem('theme') || 'light';
+                const html = document.documentElement;
+                if (html.getAttribute('data-theme') !== currentTheme) {
+                    console.log('Theme mismatch, reapplying...');
+                    html.setAttribute('data-theme', currentTheme);
+                    const themeIcon = document.getElementById('themeIcon');
+                    if (themeIcon) {
+                        themeIcon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    }
+                }
+                
                 console.log('Auth section after init:', document.getElementById('authSection'));
+                console.log('Final theme state:', html.getAttribute('data-theme'));
             }, 100);
             
             // Add theme toggle event listener as backup
@@ -802,14 +804,36 @@
                 });
             }
             
-            console.log('Enhanced initialization complete');
+            // Also update auth UI periodically in case of storage changes
+            setInterval(updateAuthUI, 5000);
+            
+            console.log('Consolidated initialization complete');
         });
 
-        // Make updateCartCount available globally
-        window.updateCartCount = updateCartCount;
-        
-        // Make updateAuthUI available globally
-        window.updateAuthUI = updateAuthUI;
+        // Debug function to manually test theme
+        window.debugTheme = function() {
+            console.log('=== THEME DEBUG ===');
+            console.log('Current data-theme:', document.documentElement.getAttribute('data-theme'));
+            console.log('Saved theme in localStorage:', localStorage.getItem('theme'));
+            console.log('Theme icon element:', document.getElementById('themeIcon'));
+            console.log('Theme icon class:', document.getElementById('themeIcon')?.className);
+            console.log('=== END THEME DEBUG ===');
+        };
+
+        // Make functions globally accessible
+        window.toggleTheme = toggleTheme;
+        window.loadTheme = loadTheme;
+
+        // Initialize theme immediately (before DOM ready for faster loading)
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                console.log('Pre-DOM theme initialization:', savedTheme);
+            } catch (e) {
+                console.error('Pre-DOM theme init error:', e);
+            }
+        })();
         
         // Debug function to manually test auth UI
         window.debugAuth = function() {
@@ -820,46 +844,6 @@
             updateAuthUI();
             console.log('=== END DEBUG ===');
         };
-
-        // Check authentication status
-        async function checkAuthenticationStatus() {
-            const token = localStorage.getItem('auth_token');
-            const userData = localStorage.getItem('user_data');
-            
-            if (token && userData) {
-                try {
-                    // Verify token is still valid
-                    const response = await fetch('/api/profile', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': 'Bearer ' + token,
-                            'Accept': 'application/json'
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        // Token is invalid, clear localStorage
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('user_data');
-                        updateAuthUI();
-                        // Redirect to login if on a protected page
-                        if (window.location.pathname === '/profile') {
-                            window.location.href = '/login';
-                        }
-                    } else {
-                        // Update auth UI to reflect logged in state
-                        updateAuthUI();
-                    }
-                } catch (error) {
-                    console.error('Auth check error:', error);
-                    // On network error, keep the stored auth data but update UI
-                    updateAuthUI();
-                }
-            } else {
-                // No auth data, update UI to show login
-                updateAuthUI();
-            }
-        }
 
     </script>
       <!-- External JS files -->

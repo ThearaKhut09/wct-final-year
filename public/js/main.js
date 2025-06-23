@@ -48,7 +48,7 @@ function initializeTheme() {
     console.log('Main.js: initializeTheme called');
     
     // Check if theme is already handled by main layout
-    if (typeof window.toggleTheme === 'function') {
+    if (typeof window.toggleTheme === 'function' || document.querySelector('[data-theme]')) {
         console.log('Main.js: Theme already initialized by layout, skipping...');
         return;
     }
@@ -89,7 +89,7 @@ function updateThemeToggleIcon(theme) {
 
 // Authentication Management
 function initializeAuth() {
-    updateAuthUI();
+    updateAuthUIElements();
     
     // Login form
     const loginForm = document.getElementById('login-form');
@@ -122,7 +122,7 @@ async function handleLogin(e) {
         
         if (response.success) {
             utils.showMessage('Login successful!', 'success');
-            updateAuthUI();
+            updateAuthUIElements();
             
             // Redirect to intended page or home
             const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/';
@@ -155,7 +155,7 @@ async function handleRegister(e) {
         
         if (response.success) {
             utils.showMessage('Registration successful!', 'success');
-            updateAuthUI();
+            updateAuthUIElements();
             window.location.href = '/';
         } else {
             utils.showMessage(response.message || 'Registration failed', 'error');
@@ -171,14 +171,14 @@ async function handleLogout() {
     try {
         await api.logout();
         utils.showMessage('Logged out successfully', 'success');
-        updateAuthUI();
+        updateAuthUIElements();
         window.location.href = '/';
     } catch (error) {
         utils.handleApiError(error);
     }
 }
 
-function updateAuthUI() {
+function updateAuthUIElements() {
     const authElements = document.querySelectorAll('[data-auth]');
     const guestElements = document.querySelectorAll('[data-guest]');
     const isLoggedIn = auth.isLoggedIn();

@@ -323,11 +323,14 @@ document.getElementById('profileForm').addEventListener('submit', async function
 // Load profile on page load
 document.addEventListener('DOMContentLoaded', loadProfile);
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof updateAuthUI === 'function') {
-        updateAuthUI();
-    } else if (typeof window.updateAuthUI === 'function') {
-        window.updateAuthUI();
-    }
+    // Ensure auth UI is updated after page loads
+    setTimeout(function() {
+        if (typeof updateAuthUI === 'function') {
+            updateAuthUI();
+        } else if (typeof window.updateAuthUI === 'function') {
+            window.updateAuthUI();
+        }
+    }, 100);
 });
 </script>
 @endsection
