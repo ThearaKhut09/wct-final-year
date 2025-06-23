@@ -322,5 +322,12 @@ document.getElementById('profileForm').addEventListener('submit', async function
 
 // Load profile on page load
 document.addEventListener('DOMContentLoaded', loadProfile);
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof updateAuthUI === 'function') {
+        updateAuthUI();
+    } else if (typeof window.updateAuthUI === 'function') {
+        window.updateAuthUI();
+    }
+});
 </script>
 @endsection
