@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Test</title>
+</head>
+<body>
+    <h1>Cart Test</h1>
+    <button onclick="testCart()">Test Cart</button>
+    <div id="cart-count">0</div>
+    <div id="test-result"></div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        function testCart() {
+            const resultDiv = document.getElementById('test-result');
+            try {
+                // Test if cart object exists
+                if (typeof window.cart === 'undefined') {
+                    resultDiv.innerHTML = '❌ Error: window.cart is not defined';
+                    return;
+                }
+
+                // Test if updateUI method exists
+                if (typeof window.cart.updateUI !== 'function') {
+                    resultDiv.innerHTML = '❌ Error: cart.updateUI is not a function';
+                    return;
+                }
+
+                // Test adding a product
+                const testProduct = {
+                    id: 1,
+                    name: 'Test Product',
+                    price: 10.00,
+                    image: 'test.jpg'
+                };
+
+                window.cart.add(testProduct, 1);
+
+                // Test if cart has items
+                if (window.cart.items.length === 0) {
+                    resultDiv.innerHTML = '❌ Error: Product not added to cart';
+                    return;
+                }
+
+                resultDiv.innerHTML = '✅ Cart test passed successfully!';
+
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

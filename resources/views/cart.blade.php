@@ -239,7 +239,7 @@
 
 <div class="cart-page">
     <h1 class="page-title">Shopping Cart</h1>
-    
+
     <div id="cartContent">
         <!-- Cart content will be loaded here by JavaScript -->
     </div>
@@ -247,10 +247,11 @@
 
 @push('scripts')
 <script>
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];    function renderCart() {
+    function renderCart() {
         const cartContent = document.getElementById('cartContent');
-        
-        if (cart.length === 0) {
+
+        // Use the global cart object from api-client.js
+        if (!window.cart || window.cart.items.length === 0) {
             cartContent.innerHTML = `
                 <div class="empty-cart">
                     <i class="fas fa-shopping-cart"></i>
@@ -262,9 +263,7 @@
                 </div>
             `;
             return;
-        }
-
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        }        const subtotal = window.cart.getTotal();
         const tax = subtotal * 0.08; // 8% tax
         const shipping = subtotal > 50 ? 0 : 9.99;
         const total = subtotal + tax + shipping;
@@ -272,27 +271,27 @@
         cartContent.innerHTML = `
             <div class="cart-container">
                 <div class="cart-items">
-                    ${cart.map(item => `
-                        <div class="cart-item" data-id="${item.id}">
-                            <img src="${item.image}" alt="${item.name}" class="item-image" 
+                    ${window.cart.items.map(item => `
+                        <div class="cart-item" data-id="${item.product.id}">
+                            <img src="${item.product.image}" alt="${item.product.name}" class="item-image"
                                  onerror="this.src='https://via.placeholder.com/100x100?text=Product'">
                             <div class="item-details">
-                                <h3>${item.name}</h3>
-                                <div class="item-price">$${parseFloat(item.price).toFixed(2)}</div>
+                                <h3>${item.product.name}</h3>
+                                <div class="item-price">$${parseFloat(item.product.price).toFixed(2)}</div>
                             </div>
                             <div class="quantity-controls">
-                                <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
-                                <input type="number" class="quantity-input" value="${item.quantity}" min="1" 
-                                       onchange="updateQuantity(${item.id}, this.value)">
-                                <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                                <button class="quantity-btn" onclick="updateQuantity(${item.product.id}, ${item.quantity - 1})">-</button>
+                                <input type="number" class="quantity-input" value="${item.quantity}" min="1"
+                                       onchange="updateQuantity(${item.product.id}, this.value)">
+                                <button class="quantity-btn" onclick="updateQuantity(${item.product.id}, ${item.quantity + 1})">+</button>
                             </div>
-                            <div class="item-total">$${(parseFloat(item.price) * item.quantity).toFixed(2)}</div>
+                            <div class="item-total">$${(parseFloat(item.product.price) * item.quantity).toFixed(2)}</div>
                             <button class="remove-btn" onclick="removeItem(${item.id})" title="Remove item">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     `).join('')}
-                    
+
                     <div class="continue-shopping">
                         <a href="{{ route('products') }}" class="btn btn-outline">
                             <i class="fas fa-arrow-left"></i> Continue Shopping
@@ -326,7 +325,7 @@
                         <span>Total</span>
                         <span>$${total.toFixed(2)}</span>
                     </div>
-                    
+
                     <div class="checkout-section">
                         <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="proceedToCheckout()">
                             <i class="fas fa-credit-card"></i> Proceed to Checkout
@@ -338,36 +337,33 @@
                 </div>
             </div>
         `;
-    }
-
-    function updateQuantity(productId, newQuantity) {
+    }    function updateQuantity(productId, newQuantity) {
         newQuantity = parseInt(newQuantity);
-        
+
         if (newQuantity < 1) {
             removeItem(productId);
             return;
         }
 
-        const item = cart.find(item => item.id === productId);
-        if (item) {
-            item.quantity = newQuantity;            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
+        if (window.cart) {
+            window.cart.updateQuantity(productId, newQuantity);
             renderCart();
-            showNotification('Cart updated successfully!', 'success');
         }
-    }    function removeItem(productId) {
+    }
+
+    function removeItem(productId) {
         // Create custom confirmation dialog
-        const item = cart.find(item => item.id === productId);
+        const item = window.cart ? window.cart.items.find(item => item.product.id === productId) : null;
         if (item) {
             createConfirmDialog(
                 'Remove Item',
-                `Are you sure you want to remove "${item.name}" from your cart?`,
+                `Are you sure you want to remove "${item.product.name}" from your cart?`,
                 () => {
-                    cart = cart.filter(item => item.id !== productId);
-                    localStorage.setItem('cart', JSON.stringify(cart));
-                    updateCartCount();
-                    renderCart();
-                    showNotification('Product removed from cart!', 'success');
+                    if (window.cart) {
+                        window.cart.remove(productId);
+                        renderCart();
+                    }
+                }
                 }
             );
         }
@@ -375,21 +371,19 @@
 
     function clearCart() {
         // Create custom confirmation dialog
-        createConfirmDialog(
-            'Clear Cart',
+        createConfirmDialog(            'Clear Cart',
             'Are you sure you want to clear your entire cart? This action cannot be undone.',
             () => {
-                cart = [];
-                localStorage.setItem('cart', JSON.stringify(cart));
-                updateCartCount();
-                renderCart();
-                showNotification('Cart cleared successfully!', 'success');
+                if (window.cart) {
+                    window.cart.clear();
+                    renderCart();
+                }
             }
         );
     }
 
     function proceedToCheckout() {
-        if (cart.length === 0) {
+        if (!window.cart || window.cart.items.length === 0) {
             showNotification('Your cart is empty!', 'warning');
             return;
         }
@@ -423,14 +417,14 @@
                 quantity: 2
             }
         ];
-        
+
         testProducts.forEach(product => {
             const existingItem = cart.find(item => item.id === product.id);
             if (!existingItem) {
                 cart.push(product);
             }
         });
-        
+
         localStorage.setItem('cart', JSON.stringify(cart));
         updateCartCount();
         renderCart();
@@ -438,7 +432,7 @@
     }    // Initialize cart on page load
     document.addEventListener('DOMContentLoaded', function() {
         renderCart();
-        
+
         // Add test products button if cart is empty
         if (cart.length === 0) {
             setTimeout(() => {
@@ -549,11 +543,11 @@
                     to { opacity: 0; }
                 }
                 @keyframes slideIn {
-                    from { 
+                    from {
                         transform: translateY(-20px);
                         opacity: 0;
                     }
-                    to { 
+                    to {
                         transform: translateY(0);
                         opacity: 1;
                     }

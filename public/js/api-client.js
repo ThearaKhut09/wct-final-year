@@ -202,14 +202,14 @@ window.auth = {
     isLoggedIn() {
         return !!api.token;
     },
-    
+
     getToken() {
         return api.token;
     },
-    
+
     async checkAuth() {
         if (!api.token) return false;
-        
+
         try {
             await api.getProfile();
             return true;
@@ -227,7 +227,7 @@ window.utils = {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
-        
+
         // Add styles
         notification.style.cssText = `
             position: fixed;
@@ -241,7 +241,7 @@ window.utils = {
             max-width: 300px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         `;
-        
+
         // Set background color based on type
         const colors = {
             success: '#10b981',
@@ -250,10 +250,10 @@ window.utils = {
             info: '#3b82f6'
         };
         notification.style.backgroundColor = colors[type] || colors.info;
-        
+
         // Add to page
         document.body.appendChild(notification);
-        
+
         // Remove after 5 seconds
         setTimeout(() => {
             if (notification.parentNode) {
@@ -261,19 +261,19 @@ window.utils = {
             }
         }, 5000);
     },
-    
+
     async handleApiError(error) {
         console.error('API Error:', error);
         this.showMessage(error.message || 'An error occurred', 'error');
     },
-    
+
     formatPrice(price) {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD'
         }).format(price);
     },
-    
+
     formatDate(date) {
         return new Date(date).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -286,27 +286,27 @@ window.utils = {
 // Shopping cart functionality
 window.cart = {
     items: JSON.parse(localStorage.getItem('cart_items') || '[]'),
-    
+
     add(product, quantity = 1) {
         const existingItem = this.items.find(item => item.product.id === product.id);
-        
+
         if (existingItem) {
             existingItem.quantity += quantity;
         } else {
             this.items.push({ product, quantity });
         }
-        
+
         this.save();
         this.updateUI();
         utils.showMessage(`${product.name} added to cart`, 'success');
     },
-    
+
     remove(productId) {
         this.items = this.items.filter(item => item.product.id !== productId);
         this.save();
         this.updateUI();
     },
-    
+
     updateQuantity(productId, quantity) {
         const item = this.items.find(item => item.product.id === productId);
         if (item) {
@@ -319,40 +319,40 @@ window.cart = {
             }
         }
     },
-    
+
     clear() {
         this.items = [];
         this.save();
         this.updateUI();
     },
-    
+
     save() {
         localStorage.setItem('cart_items', JSON.stringify(this.items));
     },
-    
+
     getTotal() {
         return this.items.reduce((total, item) => {
             return total + (item.product.price * item.quantity);
         }, 0);
     },
-    
+
     getCount() {
         return this.items.reduce((count, item) => count + item.quantity, 0);
     },
-    
+
     updateUI() {
         // Update cart count in navigation
         const cartCountElements = document.querySelectorAll('.cart-count');
         cartCountElements.forEach(element => {
             element.textContent = this.getCount();
         });
-        
+
         // Update cart total if on cart page
         const cartTotalElement = document.querySelector('.cart-total');
         if (cartTotalElement) {
             cartTotalElement.textContent = utils.formatPrice(this.getTotal());
         }
-        
+
         // Trigger custom event for other components
         window.dispatchEvent(new CustomEvent('cartUpdated', {
             detail: { items: this.items, total: this.getTotal(), count: this.getCount() }
@@ -362,7 +362,9 @@ window.cart = {
 
 // Initialize cart UI on page load
 document.addEventListener('DOMContentLoaded', () => {
-    cart.updateUI();
+    if (window.cart) {
+        window.cart.updateUI();
+    }
 });
 
 // Export for use in modules

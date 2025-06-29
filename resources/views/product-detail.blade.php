@@ -454,10 +454,10 @@
 <div class="product-detail">
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
-        <a href="{{ route('home') }}">Home</a> / 
-        <a href="{{ route('products') }}">Products</a> / 
+        <a href="{{ route('home') }}">Home</a> /
+        <a href="{{ route('products') }}">Products</a> /
         @foreach($product->categories as $category)
-            <a href="{{ route('products', ['category' => $category->id]) }}">{{ $category->name }}</a> / 
+            <a href="{{ route('products', ['category' => $category->id]) }}">{{ $category->name }}</a> /
         @endforeach
         {{ $product->name }}
     </nav>
@@ -476,7 +476,7 @@
             </div>
 
             <h1 class="product-title">{{ $product->name }}</h1>
-            
+
             @if($product->sku)
                 <div class="product-sku">SKU: {{ $product->sku }}</div>
             @endif
@@ -757,33 +757,36 @@
 
     function addToCartWithQuantity() {
         const quantity = parseInt(document.getElementById('quantity').value);
-        
-        // Check if item already exists in cart
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const existingItem = cart.find(item => item.id === productData.id);
-        
-        if (existingItem) {
-            const newQuantity = existingItem.quantity + quantity;
-            if (newQuantity <= productData.maxStock) {
-                existingItem.quantity = newQuantity;
-                showNotification(`Updated quantity to ${newQuantity}`, 'success');
-            } else {
-                showNotification(`Cannot add more. Only ${productData.maxStock} available.`, 'warning');
-                return;
-            }
+        // Use global cart object from api-client.js
+        if (window.cart) {
+            window.cart.add(productData, quantity);
         } else {
-            cart.push({
-                id: productData.id,
-                name: productData.name,
-                price: productData.price,
-                image: productData.image,
-                quantity: quantity
-            });
-            showNotification(`Added ${quantity} item(s) to cart!`, 'success');
+            // Fallback if cart not ready
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existingItem = cart.find(item => item.id === productData.id);
+
+            if (existingItem) {
+                const newQuantity = existingItem.quantity + quantity;
+                if (newQuantity <= productData.maxStock) {
+                    existingItem.quantity = newQuantity;
+                    showNotification(`Updated quantity to ${newQuantity}`, 'success');
+                } else {                    showNotification(`Cannot add more. Only ${productData.maxStock} available.`, 'warning');
+                    return;
+                }
+            } else {
+                cart.push({
+                    id: productData.id,
+                    name: productData.name,
+                    price: productData.price,
+                    image: productData.image,
+                    quantity: quantity
+                });
+                showNotification(`Added ${quantity} item(s) to cart!`, 'success');
+            }
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
         }
-        
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
     }
 
     // Validate quantity input
@@ -874,7 +877,7 @@
             selectedRating = index + 1;
             updateRatingInput();
         });
-        
+
         star.addEventListener('mouseenter', () => {
             const stars = document.querySelectorAll('.rating-input i');
             stars.forEach((s, i) => {
@@ -892,7 +895,7 @@
     // Review submission
     document.getElementById('reviewSubmitForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         if (selectedRating === 0) {
             showNotification('Please select a rating', 'warning');
             return;

@@ -1,44 +1,54 @@
 // Main JavaScript for E-smooth Online
 
-// Utility functions
-const utils = {
-    formatPrice: function(price) {
-        return '$' + parseFloat(price).toFixed(2);
-    },
-    
-    showMessage: function(message, type = 'info') {
-        if (typeof showNotification === 'function') {
-            showNotification(message, type);
-        } else {
-            console.log(`[${type.toUpperCase()}] ${message}`);
-        }
-    },
-    
-    handleApiError: function(error) {
-        console.error('API Error:', error);
-        const message = error.message || 'An error occurred';
-        this.showMessage(message, 'error');
-    }
-};
+// Utility functions (backup if not available from api-client.js)
+if (!window.utils) {
+    window.utils = {
+        formatPrice: function(price) {
+            return '$' + parseFloat(price).toFixed(2);
+        },
 
-// Simple auth utility
-const auth = {
-    isLoggedIn: function() {
-        return localStorage.getItem('auth_token') !== null;
-    }
-};
+        showMessage: function(message, type = 'info') {
+            if (typeof showNotification === 'function') {
+                showNotification(message, type);
+            } else {
+                console.log(`[${type.toUpperCase()}] ${message}`);
+            }
+        },
+
+        handleApiError: function(error) {
+            console.error('API Error:', error);
+            const message = error.message || 'An error occurred';
+            this.showMessage(message, 'error');
+        }
+    };
+}
+
+// Use the global utils object
+const utils = window.utils;
+
+// Simple auth utility (backup if not available from api-client.js)
+if (!window.auth) {
+    window.auth = {
+        isLoggedIn: function() {
+            return localStorage.getItem('auth_token') !== null;
+        }
+    };
+}
+
+// Use the global auth object
+const auth = window.auth;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize theme
     initializeTheme();
-    
+
     // Initialize authentication
     initializeAuth();
-    
+
     // Initialize product functionality
     initializeProducts();    // Initialize cart functionality
     initializeCart();
-    
+
     // Initialize search functionality
     initializeSearch();
 });
@@ -46,22 +56,22 @@ document.addEventListener('DOMContentLoaded', function() {
 // Theme Management (Enhanced compatibility)
 function initializeTheme() {
     console.log('Main.js: initializeTheme called');
-    
+
     // Check if theme is already handled by main layout
     if (typeof window.toggleTheme === 'function' || document.querySelector('[data-theme]')) {
         console.log('Main.js: Theme already initialized by layout, skipping...');
         return;
     }
-    
+
     const themeToggle = document.querySelector('.theme-toggle');
     const currentTheme = localStorage.getItem('theme') || 'light';
-    
+
     // Set initial theme
     document.documentElement.setAttribute('data-theme', currentTheme);
-    
+
     // Update toggle button icon
     updateThemeToggleIcon(currentTheme);
-    
+
     // Add event listener
     if (themeToggle) {
         themeToggle.addEventListener('click', toggleThemeLocal);
@@ -72,7 +82,7 @@ function toggleThemeLocal() {
     console.log('Main.js: toggleThemeLocal called');
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
+
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     updateThemeToggleIcon(newTheme);
@@ -81,8 +91,8 @@ function toggleThemeLocal() {
 function updateThemeToggleIcon(theme) {
     const themeToggle = document.querySelector('.theme-toggle');
     if (themeToggle) {
-        themeToggle.innerHTML = theme === 'dark' 
-            ? '<i class="fas fa-sun"></i>' 
+        themeToggle.innerHTML = theme === 'dark'
+            ? '<i class="fas fa-sun"></i>'
             : '<i class="fas fa-moon"></i>';
     }
 }
@@ -90,19 +100,19 @@ function updateThemeToggleIcon(theme) {
 // Authentication Management
 function initializeAuth() {
     updateAuthUIElements();
-    
+
     // Login form
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
-    
+
     // Register form
     const registerForm = document.getElementById('register-form');
     if (registerForm) {
         registerForm.addEventListener('submit', handleRegister);
     }
-    
+
     // Logout buttons
     const logoutButtons = document.querySelectorAll('.logout-btn');
     logoutButtons.forEach(btn => {
@@ -115,15 +125,15 @@ async function handleLogin(e) {
     const formData = new FormData(e.target);
     const email = formData.get('email');
     const password = formData.get('password');
-    
+
     try {
         showLoading(e.target);
         const response = await api.login(email, password);
-        
+
         if (response.success) {
             utils.showMessage('Login successful!', 'success');
             updateAuthUIElements();
-            
+
             // Redirect to intended page or home
             const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/';
             window.location.href = redirectUrl;
@@ -148,11 +158,11 @@ async function handleRegister(e) {
         phone: formData.get('phone'),
         address: formData.get('address')
     };
-    
+
     try {
         showLoading(e.target);
         const response = await api.register(userData);
-        
+
         if (response.success) {
             utils.showMessage('Registration successful!', 'success');
             updateAuthUIElements();
@@ -182,11 +192,11 @@ function updateAuthUIElements() {
     const authElements = document.querySelectorAll('[data-auth]');
     const guestElements = document.querySelectorAll('[data-guest]');
     const isLoggedIn = auth.isLoggedIn();
-    
+
     authElements.forEach(el => {
         el.style.display = isLoggedIn ? 'block' : 'none';
     });
-    
+
     guestElements.forEach(el => {
         el.style.display = isLoggedIn ? 'none' : 'block';
     });
@@ -198,7 +208,7 @@ function initializeProducts() {
     if (window.location.pathname === '/products' || window.location.pathname === '/') {
         loadProducts();
     }
-    
+
     // Add to cart buttons
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('add-to-cart-btn')) {
@@ -206,13 +216,13 @@ function initializeProducts() {
             cart.add(productData);
         }
     });
-    
+
     // Product filters
     const categoryFilter = document.getElementById('category-filter');
     if (categoryFilter) {
         categoryFilter.addEventListener('change', filterProducts);
     }
-    
+
     const sortFilter = document.getElementById('sort-filter');
     if (sortFilter) {
         sortFilter.addEventListener('change', filterProducts);
@@ -223,11 +233,11 @@ async function loadProducts(params = {}) {
     try {
         const productsContainer = document.getElementById('products-container');
         if (!productsContainer) return;
-        
+
         showLoading(productsContainer);
-        
+
         const response = await api.getProducts(params);
-        
+
         if (response.success) {
             displayProducts(response.data, productsContainer);
         } else {
@@ -248,18 +258,18 @@ function displayProducts(products, container) {
         container.innerHTML = '<p class="text-center">No products found</p>';
         return;
     }
-    
+
     const productsHTML = products.map(product => `
         <div class="product-card">
-            <img src="${product.image || '/images/placeholder.jpg'}" 
-                 alt="${product.name}" 
+            <img src="${product.image || '/images/placeholder.jpg'}"
+                 alt="${product.name}"
                  class="product-image">
             <div class="product-info">
                 <h3 class="product-title">${product.name}</h3>
                 <p class="product-description">${product.description || ''}</p>
                 <div class="product-price">${utils.formatPrice(product.price)}</div>
                 <div class="product-actions">
-                    <button class="btn btn-primary add-to-cart-btn" 
+                    <button class="btn btn-primary add-to-cart-btn"
                             data-product='${JSON.stringify(product)}'>
                         <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
@@ -270,7 +280,7 @@ function displayProducts(products, container) {
             </div>
         </div>
     `).join('');
-    
+
     container.innerHTML = productsHTML;
 }
 
@@ -278,28 +288,26 @@ async function filterProducts() {
     const category = document.getElementById('category-filter')?.value;
     const sort = document.getElementById('sort-filter')?.value;
     const search = document.getElementById('search-input')?.value;
-    
+
     const params = {};
     if (category) params.category = category;
     if (sort) params.sort = sort;
     if (search) params.search = search;
-    
+
     await loadProducts(params);
 }
 
 // Cart Management
 function initializeCart() {
-    // Get cart from localStorage (compatible with layout implementation)
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
+    // Use the global cart object from api-client.js
     // Update cart count on page load
     updateCartCount();
-    
+
     // Cart page functionality
     if (window.location.pathname === '/cart') {
         displayCartItems();
     }
-    
+
     // Checkout button
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
@@ -310,13 +318,11 @@ function initializeCart() {
 function displayCartItems() {
     const cartContainer = document.getElementById('cart-items');
     const cartTotal = document.getElementById('cart-total');
-    
+
     if (!cartContainer) return;
-    
-    // Get cart from localStorage (compatible with layout implementation)
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    if (cart.length === 0) {
+
+    // Use the global cart object from api-client.js
+    if (window.cart && window.cart.items.length === 0) {
         cartContainer.innerHTML = `
             <div class="text-center p-4">
                 <i class="fas fa-shopping-cart fa-3x text-secondary mb-3"></i>
@@ -327,71 +333,47 @@ function displayCartItems() {
         `;
         return;
     }
-    
-    const cartHTML = cart.map(item => `
-        <div class="cart-item" data-product-id="${item.id}">
-            <img src="${item.image || '/images/placeholder.jpg'}" 
-                 alt="${item.name}" 
+
+    const cartHTML = window.cart.items.map(item => `
+        <div class="cart-item" data-product-id="${item.product.id}">
+            <img src="${item.product.image || '/images/placeholder.jpg'}"
+                 alt="${item.product.name}"
                  class="cart-item-image">
             <div class="cart-item-info">
-                <h4>${item.name}</h4>
-                <div class="cart-item-price">$${parseFloat(item.price).toFixed(2)}</div>
+                <h4>${item.product.name}</h4>
+                <div class="cart-item-price">$${parseFloat(item.product.price).toFixed(2)}</div>
             </div>
             <div class="cart-item-controls">
                 <div class="quantity-controls">
-                    <button class="btn-quantity" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                    <button class="btn-quantity" onclick="updateQuantity(${item.product.id}, ${item.quantity - 1})">-</button>
                     <span class="quantity">${item.quantity}</span>
-                    <button class="btn-quantity" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                    <button class="btn-quantity" onclick="updateQuantity(${item.product.id}, ${item.quantity + 1})">+</button>
                 </div>
-                <button class="btn btn-danger btn-sm" onclick="removeItem(${item.id})">
+                <button class="btn btn-danger btn-sm" onclick="removeItem(${item.product.id})">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
         </div>
     `).join('');
-    
+
     cartContainer.innerHTML = cartHTML;
-    
+
     if (cartTotal) {
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        cartTotal.textContent = '$' + total.toFixed(2);
+        cartTotal.textContent = '$' + window.cart.getTotal().toFixed(2);
     }
 }
 
 function updateCartQuantity(productId, quantity) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const item = cart.find(item => item.id === productId);
-    
-    if (item) {
-        if (quantity <= 0) {
-            cart = cart.filter(item => item.id !== productId);
-            if (typeof showNotification === 'function') {
-                showNotification('Product removed from cart!', 'success');
-            }
-        } else {
-            item.quantity = quantity;
-            if (typeof showNotification === 'function') {
-                showNotification('Cart updated successfully!', 'success');
-            }
-        }
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
+    if (window.cart) {
+        window.cart.updateQuantity(productId, quantity);
         displayCartItems();
     }
 }
 
 function removeFromCart(productId) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    cart = cart.filter(item => item.id !== productId);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    displayCartItems();
-    
-    // Use the global showNotification function if available, fallback to utils.showMessage
-    if (typeof showNotification === 'function') {
-        showNotification('Product removed from cart!', 'success');
-    } else {
-        utils.showMessage('Product removed from cart!', 'success');
+    if (window.cart) {
+        window.cart.remove(productId);
+        displayCartItems();
     }
 }
 
@@ -401,29 +383,28 @@ async function handleCheckout() {
         window.location.href = `/login?redirect=${encodeURIComponent('/cart')}`;
         return;
     }
-    
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    if (cart.length === 0) {
+
+    // Use the global cart object instead of local cart array
+    if (!window.cart || window.cart.items.length === 0) {
         utils.showMessage('Your cart is empty', 'warning');
         return;
     }
-    
+
     try {
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = window.cart.getTotal();
         const orderData = {
-            items: cart.map(item => ({
-                product_id: item.id,
+            items: window.cart.items.map(item => ({
+                product_id: item.product.id,
                 quantity: item.quantity,
-                price: item.price
+                price: item.product.price
             })),
             total_amount: total
         };
-        
+
         const response = await api.createOrder(orderData);
-        
+
         if (response.success) {
-            cart.clear();
+            window.cart.clear();
             utils.showMessage('Order placed successfully!', 'success');
             window.location.href = `/orders/${response.data.id}`;
         } else {
@@ -438,11 +419,11 @@ async function handleCheckout() {
 function initializeSearch() {
     const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
-    
+
     if (searchForm) {
         searchForm.addEventListener('submit', handleSearch);
     }
-    
+
     if (searchInput) {
         // Add debounced search
         let searchTimeout;
@@ -461,7 +442,7 @@ function handleSearch(e) {
     e.preventDefault();
     const searchInput = document.getElementById('search-input');
     const query = searchInput?.value.trim();
-    
+
     if (query) {
         window.location.href = `/products?search=${encodeURIComponent(query)}`;
     }
@@ -489,14 +470,22 @@ window.updateCartQuantity = updateCartQuantity;
 window.removeFromCart = removeFromCart;
 window.toggleTheme = toggleTheme;
 
+// Global functions for cart management (used by onclick events)
+window.updateQuantity = function(productId, quantity) {
+    updateCartQuantity(productId, quantity);
+};
+
+window.removeItem = function(productId) {
+    removeFromCart(productId);
+};
+
 // Make updateCartCount available globally
 window.updateCartCount = function() {
     const cartCount = document.getElementById('cartCount');
-    if (cartCount) {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    if (cartCount && window.cart) {
+        const totalItems = window.cart.getCount();
         cartCount.textContent = totalItems;
-        
+
         // Update cart badge visibility
         if (totalItems > 0) {
             cartCount.style.display = 'flex';
@@ -509,29 +498,20 @@ window.updateCartCount = function() {
 // Ensure addToCart is available globally (backup to layout function)
 if (!window.addToCart) {
     window.addToCart = function(productId, name, price, image) {
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const existingItem = cart.find(item => item.id === productId);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
+        // Create product object in the format expected by cart.add
+        const productData = {
+            id: productId,
+            name: name,
+            price: price,
+            image: image
+        };
+
+        // Use the global cart object from api-client.js
+        if (window.cart) {
+            window.cart.add(productData, 1);
         } else {
-            cart.push({
-                id: productId,
-                name: name,
-                price: price,
-                image: image,
-                quantity: 1
-            });
+            // Fallback if cart object not available yet
+            utils.showMessage('Cart not ready, please try again', 'warning');
         }
-        
-        localStorage.setItem('cart', JSON.stringify(cart));
-        
-        // Update cart count
-        if (typeof window.updateCartCount === 'function') {
-            window.updateCartCount();
-        }
-        
-        // Show notification
-        utils.showMessage('Product added to cart!', 'success');
     };
 }

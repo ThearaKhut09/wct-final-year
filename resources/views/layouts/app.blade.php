@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'E-smooth Online - Premium Shopping Experience')</title>
-    
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
       <!-- Icons -->
@@ -31,9 +31,9 @@
                 font-family: inherit;
             `;
             notification.textContent = message;
-            
+
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.remove();
             }, 4000);
@@ -44,25 +44,25 @@
             const token = localStorage.getItem('auth_token');
             const userData = localStorage.getItem('user_data');
             const authSection = document.getElementById('authSection');
-            
+
             console.log('updateAuthUI called:', {
                 hasToken: !!token,
                 hasUserData: !!userData,
                 hasAuthSection: !!authSection,
                 currentContent: authSection ? authSection.innerHTML : 'no auth section'
             });
-            
+
             if (!authSection) {
                 console.error('authSection not found!');
                 return;
             }
-            
+
             if (token && userData) {
                 try {
                     const user = JSON.parse(userData);
                     const firstName = user.name ? user.name.split(' ')[0] : 'User';
                     console.log('Setting authenticated UI for user:', firstName);
-                    
+
                     authSection.innerHTML = `
                         <div class="user-menu" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                             <span style="color: var(--text-primary); white-space: nowrap;">Welcome, ${firstName}!</span>
@@ -95,7 +95,7 @@
         // Logout function
         function logout() {
             const token = localStorage.getItem('auth_token');
-            
+
             if (token) {
                 // Call logout API
                 fetch('/api/logout', {
@@ -124,7 +124,7 @@
         async function checkAuthenticationStatus() {
             const token = localStorage.getItem('auth_token');
             const userData = localStorage.getItem('user_data');
-            
+
             if (token && userData) {
                 try {
                     // Verify token is still valid
@@ -135,7 +135,7 @@
                             'Accept': 'application/json'
                         }
                     });
-                    
+
                     if (!response.ok) {
                         // Token is invalid, clear localStorage
                         localStorage.removeItem('auth_token');
@@ -162,7 +162,7 @@
 
         // Add notification animation styles (consolidated)
     </script>
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
       <style>
@@ -477,7 +477,7 @@
             }
         }
     </style>
-    
+
     @stack('styles')
 </head>
 <body>
@@ -485,7 +485,7 @@
     <header class="header">
         <nav class="navbar">
             <a href="{{ route('home') }}" class="logo">E-smooth Online</a>
-            
+
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i>
             </button>
@@ -561,14 +561,14 @@
         // Enhanced Theme Toggle
         function toggleTheme() {
             console.log('toggleTheme() function called');
-            
+
             try {
                 const html = document.documentElement;
                 const themeIcon = document.getElementById('themeIcon');
                 const currentTheme = html.getAttribute('data-theme');
-                
+
                 console.log('Current theme before toggle:', currentTheme);
-                
+
                 if (currentTheme === 'dark') {
                     html.setAttribute('data-theme', 'light');
                     if (themeIcon) {
@@ -586,50 +586,50 @@
                     localStorage.setItem('theme', 'dark');
                     console.log('Theme saved to localStorage: dark');
                 }
-                
+
                 // Force a reflow to ensure theme change is applied immediately
                 html.style.display = 'none';
                 html.offsetHeight;
                 html.style.display = '';
-                
+
                 console.log('New theme after toggle:', html.getAttribute('data-theme'));
-                
+
             } catch (error) {
                 console.error('Error in toggleTheme():', error);
             }
         }
-        
+
         // Make toggleTheme globally accessible
         window.toggleTheme = toggleTheme;
 
         // Enhanced Load Theme
         function loadTheme() {
             console.log('loadTheme() function called');
-            
+
             try {
                 const savedTheme = localStorage.getItem('theme') || 'light';
                 const themeIcon = document.getElementById('themeIcon');
                 const html = document.documentElement;
-                
+
                 console.log('Loading saved theme:', savedTheme);
-                
+
                 // Apply the theme
                 html.setAttribute('data-theme', savedTheme);
-                
+
                 // Update the icon
                 if (themeIcon) {
                     themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                     console.log('Theme icon updated for', savedTheme, 'theme');
                 }
-                
+
                 // Force reflow to ensure styles are applied
                 html.style.display = 'none';
                 html.offsetHeight;
                 html.style.display = '';
-                
+
                 console.log('Theme loaded successfully:', savedTheme);
                 console.log('HTML data-theme attribute:', html.getAttribute('data-theme'));
-                
+
             } catch (error) {
                 console.error('Error in loadTheme():', error);
             }
@@ -641,15 +641,15 @@
             navLinks.classList.toggle('active');
         }
 
-        // Cart Management
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-
+        // Cart Management - Use global cart object from api-client.js
         // Listen for cart updates from other tabs/windows
         window.addEventListener('storage', function(e) {
-            if (e.key === 'cart') {
-                cart = JSON.parse(e.newValue) || [];
+            if (e.key === 'cart_items' && window.cart) {
+                // Reload cart items from storage
+                window.cart.items = JSON.parse(e.newValue) || [];
+                window.cart.updateUI();
                 updateCartCount();
-                
+
                 // If we're on the cart page, refresh the display
                 if (window.location.pathname === '/cart' && typeof renderCart === 'function') {
                     renderCart();
@@ -661,9 +661,9 @@
                 const cart = JSON.parse(localStorage.getItem('cart')) || [];
                 const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
                 cartCount.textContent = totalItems;
-                
+
                 console.log('Cart count updated:', totalItems, 'items in cart:', cart.length);
-                
+
                 // Update cart badge visibility
                 if (totalItems > 0) {
                     cartCount.style.display = 'flex';
@@ -673,25 +673,41 @@
             } else {
                 console.log('Cart count element not found');
             }
-        }        function addToCart(productId, name, price, image) {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const existingItem = cart.find(item => item.id === productId);
-            
-            if (existingItem) {
-                existingItem.quantity += 1;
+        }
+
+        function addToCart(productId, name, price, image) {
+            // Use the global cart object from api-client.js
+            const productData = {
+                id: productId,
+                name: name,
+                price: price,
+                image: image
+            };
+
+            if (window.cart) {
+                window.cart.add(productData, 1);
             } else {
-                cart.push({
-                    id: productId,
-                    name: name,
-                    price: price,
-                    image: image,
-                    quantity: 1
-                });
+                // Fallback if cart not ready
+                console.warn('Cart not ready, storing for later');
+                const fallbackCart = JSON.parse(localStorage.getItem('cart')) || [];
+                const existingItem = fallbackCart.find(item => item.id === productId);
+
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    fallbackCart.push({
+                        id: productId,
+                        name: name,
+                        price: price,
+                        image: image,
+                        quantity: 1
+                    });
+                }
+
+                localStorage.setItem('cart', JSON.stringify(fallbackCart));
+                updateCartCount();
             }
-            
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-            
+
             // Show notification
             showNotification('Product added to cart!', 'success');
         }
@@ -716,7 +732,7 @@
                 localStorage.removeItem('user_data');
                 updateAuthUI();
                 showNotification('Logged out successfully!', 'success');
-                
+
                 // Redirect to home if on admin page
                 if (window.location.pathname.includes('/admin')) {
                     window.location.href = '/';
@@ -741,9 +757,9 @@
                 word-wrap: break-word;
             `;
             notification.textContent = message;
-            
+
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.remove();
             }, 4000);
@@ -766,17 +782,17 @@
         document.head.appendChild(style);        // Consolidated initialization
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded - consolidated initialization...');
-            
+
             // Load theme first and ensure it's applied
             loadTheme();
-            
+
             // Wait a moment for all elements to be rendered
             setTimeout(() => {
                 // Initialize authentication and cart
                 updateCartCount();
                 updateAuthUI();
                 checkAuthenticationStatus();
-                
+
                 // Double-check theme is applied
                 const currentTheme = localStorage.getItem('theme') || 'light';
                 const html = document.documentElement;
@@ -788,11 +804,11 @@
                         themeIcon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                     }
                 }
-                
+
                 console.log('Auth section after init:', document.getElementById('authSection'));
                 console.log('Final theme state:', html.getAttribute('data-theme'));
             }, 100);
-            
+
             // Add theme toggle event listener as backup
             const themeToggle = document.getElementById('themeToggleBtn');
             if (themeToggle) {
@@ -803,10 +819,10 @@
                     toggleTheme();
                 });
             }
-            
+
             // Also update auth UI periodically in case of storage changes
             setInterval(updateAuthUI, 5000);
-            
+
             console.log('Consolidated initialization complete');
         });
 
@@ -834,7 +850,7 @@
                 console.error('Pre-DOM theme init error:', e);
             }
         })();
-        
+
         // Debug function to manually test auth UI
         window.debugAuth = function() {
             console.log('=== AUTH DEBUG ===');
