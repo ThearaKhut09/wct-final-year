@@ -58,11 +58,13 @@ function initializeTheme() {
     console.log('Main.js: initializeTheme called');
 
     // Check if theme is already handled by main layout
-    if (typeof window.toggleTheme === 'function' || document.querySelector('[data-theme]')) {
-        console.log('Main.js: Theme already initialized by layout, skipping...');
+    if (typeof window.themeManager !== 'undefined') {
+        console.log('Main.js: Theme Manager found, using centralized theme system');
         return;
     }
 
+    // Fallback theme handling if themeManager is not available
+    console.log('Main.js: Using fallback theme system');
     const themeToggle = document.querySelector('.theme-toggle');
     const currentTheme = localStorage.getItem('theme') || 'light';
 

@@ -497,7 +497,7 @@
                 <li><a href="{{ route('wishlist') }}" class="{{ request()->routeIs('wishlist') ? 'active' : '' }}">
                     <i class="fas fa-heart"></i> Wishlist
                 </a></li>            </ul>            <div class="nav-actions">
-                <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark Mode">
+                <button class="theme-toggle" id="themeToggleBtn" title="Toggle Dark Mode">
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
                 <a href="{{ route('cart') }}" class="cart-icon">
@@ -554,86 +554,116 @@
         <div class="footer-bottom">
             <p>&copy; 2025 E-smooth Online. All rights reserved. | Designed with ❤️ for amazing shopping experience</p>
         </div>
-    </footer>    <!-- JavaScript -->
+    </footer>        <!-- JavaScript -->
     <script>
         console.log('Enhanced E-smooth Online Script Loading...');
 
-        // Enhanced Theme Toggle
-        function toggleTheme() {
-            console.log('toggleTheme() function called');
+        // Centralized Theme Management
+        window.themeManager = {
+            currentTheme: 'light',
 
-            try {
-                const html = document.documentElement;
-                const themeIcon = document.getElementById('themeIcon');
-                const currentTheme = html.getAttribute('data-theme');
+            // Initialize theme system
+            init: function() {
+                console.log('Theme Manager: Initializing...');
 
-                console.log('Current theme before toggle:', currentTheme);
+                // Load saved theme immediately
+                this.loadTheme();
 
-                if (currentTheme === 'dark') {
-                    html.setAttribute('data-theme', 'light');
-                    if (themeIcon) {
-                        themeIcon.className = 'fas fa-moon';
-                        console.log('Switched to light mode, icon changed to moon');
-                    }
-                    localStorage.setItem('theme', 'light');
-                    console.log('Theme saved to localStorage: light');
-                } else {
-                    html.setAttribute('data-theme', 'dark');
-                    if (themeIcon) {
-                        themeIcon.className = 'fas fa-sun';
-                        console.log('Switched to dark mode, icon changed to sun');
-                    }
-                    localStorage.setItem('theme', 'dark');
-                    console.log('Theme saved to localStorage: dark');
+                // Set up event listeners
+                this.setupEventListeners();
+
+                console.log('Theme Manager: Initialized with theme:', this.currentTheme);
+            },
+
+            // Setup event listeners
+            setupEventListeners: function() {
+                const themeToggle = document.getElementById('themeToggleBtn');
+                if (themeToggle) {
+                    // Remove any existing listeners
+                    themeToggle.removeEventListener('click', this.toggle.bind(this));
+                    // Add new listener
+                    themeToggle.addEventListener('click', this.toggle.bind(this));
+                    console.log('Theme Manager: Event listener attached');
                 }
+            },
 
-                // Force a reflow to ensure theme change is applied immediately
-                html.style.display = 'none';
-                html.offsetHeight;
-                html.style.display = '';
+            // Toggle theme
+            toggle: function() {
+                console.log('Theme Manager: Toggle called');
+                const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+                this.setTheme(newTheme);
+            },
 
-                console.log('New theme after toggle:', html.getAttribute('data-theme'));
+            // Set specific theme
+            setTheme: function(theme) {
+                console.log('Theme Manager: Setting theme to', theme);
 
-            } catch (error) {
-                console.error('Error in toggleTheme():', error);
+                try {
+                    const html = document.documentElement;
+                    const themeIcon = document.getElementById('themeIcon');
+
+                    // Update current theme
+                    this.currentTheme = theme;
+
+                    // Apply theme to DOM
+                    if (theme === 'dark') {
+                        html.setAttribute('data-theme', 'dark');
+                        if (themeIcon) themeIcon.className = 'fas fa-sun';
+                    } else {
+                        html.removeAttribute('data-theme');
+                        if (themeIcon) themeIcon.className = 'fas fa-moon';
+                    }
+
+                    // Save to localStorage
+                    localStorage.setItem('theme', theme);
+
+                    // Dispatch custom event for other components
+                    window.dispatchEvent(new CustomEvent('themeChanged', {
+                        detail: { theme: theme }
+                    }));
+
+                    console.log('Theme Manager: Theme applied successfully:', theme);
+
+                } catch (error) {
+                    console.error('Theme Manager: Error setting theme:', error);
+                }
+            },
+
+            // Load theme from localStorage
+            loadTheme: function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                console.log('Theme Manager: Loading saved theme:', savedTheme);
+                this.setTheme(savedTheme);
+            },
+
+            // Get current theme
+            getCurrentTheme: function() {
+                return this.currentTheme;
             }
+        };
+
+        // Legacy function for backward compatibility
+        function toggleTheme() {
+            console.log('Legacy toggleTheme called, delegating to Theme Manager');
+            window.themeManager.toggle();
         }
 
-        // Make toggleTheme globally accessible
+        // Make functions globally accessible
         window.toggleTheme = toggleTheme;
+        window.loadTheme = function() { window.themeManager.loadTheme(); };
 
-        // Enhanced Load Theme
-        function loadTheme() {
-            console.log('loadTheme() function called');
-
+        // Pre-load theme before DOM is ready for faster rendering
+        (function() {
             try {
                 const savedTheme = localStorage.getItem('theme') || 'light';
-                const themeIcon = document.getElementById('themeIcon');
-                const html = document.documentElement;
-
-                console.log('Loading saved theme:', savedTheme);
-
-                // Apply the theme
-                html.setAttribute('data-theme', savedTheme);
-
-                // Update the icon
-                if (themeIcon) {
-                    themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-                    console.log('Theme icon updated for', savedTheme, 'theme');
+                if (savedTheme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
                 }
-
-                // Force reflow to ensure styles are applied
-                html.style.display = 'none';
-                html.offsetHeight;
-                html.style.display = '';
-
-                console.log('Theme loaded successfully:', savedTheme);
-                console.log('HTML data-theme attribute:', html.getAttribute('data-theme'));
-
-            } catch (error) {
-                console.error('Error in loadTheme():', error);
+                console.log('Pre-DOM theme initialization:', savedTheme);
+            } catch (e) {
+                console.error('Pre-DOM theme init error:', e);
             }
-        }
+        })();
 
         // Mobile Menu Toggle
         function toggleMobileMenu() {
@@ -780,50 +810,19 @@
             }
         `;
         document.head.appendChild(style);        // Consolidated initialization
+        // Enhanced initialization
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded - consolidated initialization...');
+            console.log('DOM Content Loaded - Starting initialization...');
 
-            // Load theme first and ensure it's applied
-            loadTheme();
+            // Initialize theme system first
+            window.themeManager.init();
 
-            // Wait a moment for all elements to be rendered
-            setTimeout(() => {
-                // Initialize authentication and cart
-                updateCartCount();
-                updateAuthUI();
-                checkAuthenticationStatus();
+            // Initialize other systems
+            updateCartCount();
+            updateAuthUI();
+            checkAuthenticationStatus();
 
-                // Double-check theme is applied
-                const currentTheme = localStorage.getItem('theme') || 'light';
-                const html = document.documentElement;
-                if (html.getAttribute('data-theme') !== currentTheme) {
-                    console.log('Theme mismatch, reapplying...');
-                    html.setAttribute('data-theme', currentTheme);
-                    const themeIcon = document.getElementById('themeIcon');
-                    if (themeIcon) {
-                        themeIcon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-                    }
-                }
-
-                console.log('Auth section after init:', document.getElementById('authSection'));
-                console.log('Final theme state:', html.getAttribute('data-theme'));
-            }, 100);
-
-            // Add theme toggle event listener as backup
-            const themeToggle = document.getElementById('themeToggleBtn');
-            if (themeToggle) {
-                console.log('Adding theme toggle event listener');
-                themeToggle.addEventListener('click', function(e) {
-                    console.log('Theme toggle clicked via event listener');
-                    e.preventDefault();
-                    toggleTheme();
-                });
-            }
-
-            // Also update auth UI periodically in case of storage changes
-            setInterval(updateAuthUI, 5000);
-
-            console.log('Consolidated initialization complete');
+            console.log('Main initialization complete');
         });
 
         // Debug function to manually test theme
