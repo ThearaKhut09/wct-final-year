@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-smooth Online - Admin API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>E-smooth Online - Admin API Test</h1>
+    <p>This page tests the admin functionality of the E-smooth Online API.</p>
+
+    <div class="test-section">
+        <h3>System Status</h3>
+        <div id="system-status">
+            <p>🔄 Checking system status...</p>
+        </div>
+        <button onclick="checkSystemStatus()">Refresh Status</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Authentication Test</h3>
+        <button onclick="testLogin()">Test Admin Login</button>
+        <button onclick="testProfile()">Test Profile Access</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Dashboard Test</h3>
+        <button onclick="testDashboard()">Test Dashboard Stats</button>
+        <button onclick="testActivities()">Test Recent Activities</button>
+        <div id="dashboard-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>User Management Test</h3>
+        <button onclick="testUsers()">Test Get Users</button>
+        <button onclick="testUserStats()">Test User Stats</button>
+        <div id="users-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Product Management Test</h3>
+        <button onclick="testProducts()">Test Get Products</button>
+        <button onclick="testProductStats()">Test Product Stats</button>
+        <div id="products-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Order Management Test</h3>
+        <button onclick="testOrders()">Test Get Orders</button>
+        <button onclick="testOrderStats()">Test Order Stats</button>
+        <div id="orders-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Settings Test</h3>
+        <button onclick="testSettings()">Test Get Settings</button>
+        <button onclick="testSystemInfo()">Test System Info</button>
+        <div id="settings-result"></div>
+    </div>    <script>
+        let authToken = '';
+        const API_BASE = 'http://127.0.0.1:8000/api';
+
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (authToken) {
+                options.headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                console.log(`Making API call: ${method} ${API_BASE}${endpoint}`);
+                console.log('Headers:', options.headers);
+                if (data) console.log('Data:', data);
+
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                const result = await response.json();
+
+                console.log(`Response status: ${response.status}`);
+                console.log('Response data:', result);
+
+                return { status: response.status, data: result };
+            } catch (error) {
+                console.error('API call error:', error);
+                return { status: 500, data: { success: false, message: error.message } };
+            }
+        }
+
+        function displayResult(elementId, title, result) {
+            const element = document.getElementById(elementId);
+            const statusClass = result.data.success ? 'success' : 'error';
+            element.innerHTML = `
+                <h4>${title}</h4>
+                <p class="${statusClass}">Status: ${result.status} - ${result.data.success ? 'SUCCESS' : 'FAILED'}</p>
+                <p>Message: ${result.data.message || 'No message'}</p>
+                <details>
+                    <summary>Response Details</summary>
+                    <pre>${JSON.stringify(result.data, null, 2)}</pre>
+                </details>
+            `;
+        }
+
+        async function testLogin() {
+            const result = await apiCall('/login', 'POST', {
+                email: 'admin@esmooth.com',
+                password: 'admin123'
+            });
+
+            if (result.data.success) {
+                authToken = result.data.data.access_token;
+            }
+
+            displayResult('auth-result', 'Admin Login Test', result);
+        }
+
+        async function testProfile() {
+            const result = await apiCall('/profile');
+            displayResult('auth-result', 'Profile Access Test', result);
+        }
+
+        async function testDashboard() {
+            const result = await apiCall('/admin/dashboard/stats');
+            displayResult('dashboard-result', 'Dashboard Stats Test', result);
+        }
+
+        async function testActivities() {
+            const result = await apiCall('/admin/dashboard/activities');
+            displayResult('dashboard-result', 'Recent Activities Test', result);
+        }
+
+        async function testUsers() {
+            const result = await apiCall('/admin/users');
+            displayResult('users-result', 'Get Users Test', result);
+        }
+
+        async function testUserStats() {
+            const result = await apiCall('/admin/users-stats');
+            displayResult('users-result', 'User Stats Test', result);
+        }
+
+        async function testProducts() {
+            const result = await apiCall('/admin/products');
+            displayResult('products-result', 'Get Products Test', result);
+        }
+
+        async function testProductStats() {
+            const result = await apiCall('/admin/products-stats');
+            displayResult('products-result', 'Product Stats Test', result);
+        }
+
+        async function testOrders() {
+            const result = await apiCall('/admin/orders');
+            displayResult('orders-result', 'Get Orders Test', result);
+        }
+
+        async function testOrderStats() {
+            const result = await apiCall('/admin/orders-stats');
+            displayResult('orders-result', 'Order Stats Test', result);
+        }
+
+        async function testSettings() {
+            const result = await apiCall('/admin/settings');
+            displayResult('settings-result', 'Get Settings Test', result);
+        }
+
+        async function testSystemInfo() {
+            const result = await apiCall('/admin/system-info');
+            displayResult('settings-result', 'System Info Test', result);
+        }
+
+        // Auto-test login on page load
+        window.addEventListener('load', function() {
+            console.log('Testing admin functionality...');
+            console.log('Default admin credentials:');
+            console.log('Email: admin@esmooth.com');
+            console.log('Password: admin123');
+
+            checkSystemStatus();
+        });
+
+        async function checkSystemStatus() {
+            const statusDiv = document.getElementById('system-status');
+            statusDiv.innerHTML = '<p>🔄 Checking system status...</p>';
+
+            const checks = [];
+
+            // Check if server is running
+            try {
+                const response = await fetch(`${API_BASE}/login`, { method: 'HEAD' });
+                checks.push(`✅ Server: Running (${response.status})`);
+            } catch (error) {
+                checks.push(`❌ Server: Not accessible (${error.message})`);
+            }
+
+            // Test basic login
+            try {
+                const loginResult = await apiCall('/login', 'POST', {
+                    email: 'admin@esmooth.com',
+                    password: 'admin123'
+                });
+
+                if (loginResult.data.success) {
+                    authToken = loginResult.data.data.access_token;
+                    checks.push(`✅ Admin Login: Working`);
+                    checks.push(`✅ Auth Token: ${authToken.substring(0, 20)}...`);
+                } else {
+                    checks.push(`❌ Admin Login: Failed - ${loginResult.data.message}`);
+                }
+            } catch (error) {
+                checks.push(`❌ Admin Login: Error - ${error.message}`);
+            }
+
+            statusDiv.innerHTML = checks.map(check => `<p>${check}</p>`).join('');
+        }
+    </script>
+</body>
+</html>

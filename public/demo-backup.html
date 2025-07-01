@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-smooth Online - Simple Admin Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .login-form {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .result {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th { background: #f8f9fa; }
+        .status-indicator {
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 E-smooth Online - Admin Demo</h1>
+
+        <div id="status" class="status-indicator">
+            <h3>System Status: Checking...</h3>
+        </div>
+
+        <div class="login-form">
+            <h3>Admin Login</h3>
+            <input type="email" id="email" value="admin@esmooth.com" placeholder="Email">
+            <input type="password" id="password" value="admin123" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <button onclick="logout()">Logout</button>
+            <div id="login-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h3>Dashboard Actions</h3>
+                <button onclick="getDashboardStats()">Get Dashboard Stats</button>
+                <button onclick="getUserStats()">Get User Stats</button>
+                <button onclick="getProductStats()">Get Product Stats</button>
+                <div id="dashboard-result" class="result" style="display: none;"></div>
+            </div>
+
+            <div>
+                <h3>Management Actions</h3>
+                <button onclick="getUsers()">List Users</button>
+                <button onclick="getProducts()">List Products</button>
+                <button onclick="getOrders()">List Orders</button>
+                <div id="management-result" class="result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div>
+            <h3>Quick Actions</h3>
+            <button onclick="createTestUser()">Create Test User</button>
+            <button onclick="toggleProductStatus()">Toggle Product Status</button>
+            <button onclick="clearCache()">Clear Cache</button>
+            <div id="actions-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div>
+            <h3>System Information</h3>
+            <div id="system-info" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('adminToken');
+        const API_URL = 'http://127.0.0.1:8000/api';
+
+        // Check system status on load
+        window.addEventListener('load', checkSystemStatus);
+
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json' }
+            };
+
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                console.log(`${method} ${API_URL}${endpoint}`, data);
+                const response = await fetch(`${API_URL}${endpoint}`, options);
+                const result = await response.json();
+                console.log('Response:', result);
+                return { success: response.ok, status: response.status, data: result };
+            } catch (error) {
+                console.error('API Error:', error);
+                return { success: false, status: 0, data: { message: error.message } };
+            }
+        }
+
+        function showResult(elementId, title, result) {
+            const element = document.getElementById(elementId);
+            const status = result.success ? 'success' : 'error';
+            element.className = `result ${status}`;
+            element.style.display = 'block';
+            element.innerHTML = `
+                <strong>${title}</strong><br>
+                Status: ${result.status} ${result.success ? '✅' : '❌'}<br>
+                ${result.data.message || ''}<br>
+                <details>
+                    <summary>Details</summary>
+                    <pre>${JSON.stringify(result.data, null, 2)}</pre>
+                </details>
+            `;
+        }
+
+        async function checkSystemStatus() {
+            const statusDiv = document.getElementById('status');
+
+            try {
+                // Test basic connectivity
+                const response = await fetch(`${API_URL}/login`, { method: 'HEAD' });
+                statusDiv.innerHTML = `
+                    <h3>System Status: Online ✅</h3>
+                    <p>Server is running on ${API_URL}</p>
+                    <p>Response: ${response.status}</p>
+                `;
+                statusDiv.className = 'status-indicator success';
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <h3>System Status: Offline ❌</h3>
+                    <p>Cannot connect to ${API_URL}</p>
+                    <p>Error: ${error.message}</p>
+                    <p><strong>Make sure to run: php artisan serve --host=127.0.0.1 --port=8000</strong></p>
+                `;
+                statusDiv.className = 'status-indicator error';
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const result = await apiCall('/login', 'POST', { email, password });
+
+            if (result.success && result.data.success) {
+                token = result.data.data.access_token;
+                localStorage.setItem('adminToken', token);
+                showResult('login-result', 'Login', result);
+            } else {
+                showResult('login-result', 'Login Failed', result);
+            }
+        }
+
+        async function logout() {
+            await apiCall('/logout', 'POST');
+            token = null;
+            localStorage.removeItem('adminToken');
+            showResult('login-result', 'Logout', { success: true, status: 200, data: { message: 'Logged out' } });
+        }
+
+        async function getDashboardStats() {
+            const result = await apiCall('/admin/dashboard/stats');
+            showResult('dashboard-result', 'Dashboard Stats', result);
+        }
+
+        async function getUserStats() {
+            const result = await apiCall('/admin/users-stats');
+            showResult('dashboard-result', 'User Stats', result);
+        }
+
+        async function getProductStats() {
+            const result = await apiCall('/admin/products-stats');
+            showResult('dashboard-result', 'Product Stats', result);
+        }
+
+        async function getUsers() {
+            const result = await apiCall('/admin/users');
+            showResult('management-result', 'Users List', result);
+        }
+
+        async function getProducts() {
+            const result = await apiCall('/admin/products');
+            showResult('management-result', 'Products List', result);
+        }
+
+        async function getOrders() {
+            const result = await apiCall('/admin/orders');
+            showResult('management-result', 'Orders List', result);
+        }
+
+        async function createTestUser() {
+            const testUser = {
+                name: 'Test User ' + Date.now(),
+                email: 'test' + Date.now() + '@example.com',
+                password: 'password123',
+                role: 'customer'
+            };
+
+            const result = await apiCall('/admin/users', 'POST', testUser);
+            showResult('actions-result', 'Create Test User', result);
+        }
+
+        async function toggleProductStatus() {
+            // First get a product to toggle
+            const products = await apiCall('/admin/products');
+            if (products.success && products.data.data.length > 0) {
+                const productId = products.data.data[0].id;
+                const result = await apiCall(`/admin/products/${productId}/toggle-status`, 'POST');
+                showResult('actions-result', 'Toggle Product Status', result);
+            } else {
+                showResult('actions-result', 'Toggle Product Status', {
+                    success: false,
+                    status: 404,
+                    data: { message: 'No products found to toggle' }
+                });
+            }
+        }
+
+        async function clearCache() {
+            const result = await apiCall('/admin/cache/clear', 'POST');
+            showResult('actions-result', 'Clear Cache', result);
+        }
+
+        // Show system info immediately
+        document.getElementById('system-info').innerHTML = `
+            <strong>System Information:</strong><br>
+            Current URL: ${window.location.href}<br>
+            API Base URL: ${API_URL}<br>
+            Token: ${token ? token.substring(0, 20) + '...' : 'Not logged in'}<br>
+            Browser: ${navigator.userAgent}<br>
+            Time: ${new Date().toLocaleString()}
+        `;
+    </script>
+</body>
+</html>

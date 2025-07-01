@@ -19,6 +19,7 @@ class AdminSeeder extends Seeder
                 'name' => 'Admin User',
                 'password' => 'admin123',
                 'role' => 'admin',
+                'is_active' => true,
                 'email_verified_at' => now()
             ]
         );
@@ -30,6 +31,7 @@ class AdminSeeder extends Seeder
                 'name' => 'John Doe',
                 'password' => 'customer123',
                 'role' => 'customer',
+                'is_active' => true,
                 'email_verified_at' => now()
             ]
         );

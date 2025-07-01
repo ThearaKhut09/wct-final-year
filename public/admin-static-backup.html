@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-smooth Online - Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-right: 3px solid white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card i {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .content-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+        }
+
+        /* Status badges */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #667eea;
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2><i class="fas fa-store"></i> E-smooth Admin</h2>
+            <ul>
+                <li><a href="#dashboard" class="nav-link active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#users" class="nav-link" data-section="users"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#products" class="nav-link" data-section="products"><i class="fas fa-box"></i> Products</a></li>
+                <li><a href="#orders" class="nav-link" data-section="orders"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+                <li><a href="#categories" class="nav-link" data-section="categories"><i class="fas fa-tags"></i> Categories</a></li>
+                <li><a href="#settings" class="nav-link" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="#backup" class="nav-link" data-section="backup"><i class="fas fa-database"></i> Backup</a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1 id="page-title">Dashboard</h1>
+                <div>
+                    <span id="admin-name">Welcome, Admin</span>
+                    <button class="btn btn-primary" id="refresh-btn"><i class="fas fa-refresh"></i> Refresh</button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading...</p>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3 id="total-customers">0</h3>
+                        <p>Total Customers</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-box"></i>
+                        <h3 id="total-products">0</h3>
+                        <p>Total Products</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3 id="total-orders">0</h3>
+                        <p>Total Orders</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-dollar-sign"></i>
+                        <h3 id="total-revenue">$0</h3>
+                        <p>Total Revenue</p>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h2 class="section-title">Recent Orders</h2>
+                    <table id="recent-orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="users-section" class="section" style="display: none;">
+                <div class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="section-title">User Management</h2>
+                        <button class="btn btn-primary" id="add-user-btn"><i class="fas fa-plus"></i> Add User</button>
+                    </div>
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="products-section" class="section" style="display: none;">
+                <div class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="section-title">Product Management</h2>
+                        <div>
+                            <button class="btn btn-success" id="add-product-btn"><i class="fas fa-plus"></i> Add Product</button>
+                            <button class="btn btn-warning" id="import-products-btn"><i class="fas fa-upload"></i> Import</button>
+                        </div>
+                    </div>
+                    <table id="products-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>SKU</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="orders-section" class="section" style="display: none;">
+                <div class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="section-title">Order Management</h2>
+                        <button class="btn btn-primary" id="export-orders-btn"><i class="fas fa-download"></i> Export</button>
+                    </div>
+                    <table id="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings-section" class="section" style="display: none;">
+                <div class="content-section">
+                    <h2 class="section-title">System Settings</h2>
+                    <form id="settings-form">
+                        <div class="form-group">
+                            <label for="site-name">Site Name</label>
+                            <input type="text" id="site-name" class="form-control" name="site_name">
+                        </div>
+                        <div class="form-group">
+                            <label for="site-description">Site Description</label>
+                            <textarea id="site-description" class="form-control" name="site_description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="site-email">Site Email</label>
+                            <input type="email" id="site-email" class="form-control" name="site_email">
+                        </div>
+                        <div class="form-group">
+                            <label for="currency">Currency</label>
+                            <input type="text" id="currency" class="form-control" name="currency">
+                        </div>
+                        <div class="form-group">
+                            <label for="tax-rate">Tax Rate (%)</label>
+                            <input type="number" id="tax-rate" class="form-control" name="tax_rate" step="0.01">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                        <button type="button" class="btn btn-warning" id="clear-cache-btn">Clear Cache</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Backup Section -->
+            <div id="backup-section" class="section" style="display: none;">
+                <div class="content-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="section-title">Database Backup</h2>
+                        <button class="btn btn-success" id="create-backup-btn"><i class="fas fa-plus"></i> Create Backup</button>
+                    </div>
+                    <table id="backups-table">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Size</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="user-modal-title">Add User</h2>
+            <form id="user-form">
+                <div class="form-group">
+                    <label for="user-name">Name</label>
+                    <input type="text" id="user-name" class="form-control" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-email">Email</label>
+                    <input type="email" id="user-email" class="form-control" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-password">Password</label>
+                    <input type="password" id="user-password" class="form-control" name="password">
+                </div>
+                <div class="form-group">
+                    <label for="user-role">Role</label>
+                    <select id="user-role" class="form-control" name="role" required>
+                        <option value="customer">Customer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Save User</button>
+                <button type="button" class="btn btn-danger cancel-btn">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let authToken = localStorage.getItem('adminToken');
+        let currentUser = null;
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:8000/api'
+            : '/api';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!authToken) {
+                showLoginForm();
+                return;
+            }
+
+            initializeApp();
+        });
+
+        function showLoginForm() {
+            const loginHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div style="background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 400px;">
+                        <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Admin Login</h2>
+                        <form id="login-form">
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" class="form-control" required value="admin@esmooth.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" class="form-control" required value="admin123">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                        </form>
+                        <div id="login-error" style="color: red; margin-top: 15px; display: none;"></div>
+                    </div>
+                </div>
+            `;
+
+            document.body.innerHTML = loginHTML;
+
+            document.getElementById('login-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                try {
+                    const response = await fetch(`${API_BASE}/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        authToken = data.data.access_token;
+                        currentUser = data.data.user;
+
+                        if (currentUser.role !== 'admin') {
+                            document.getElementById('login-error').style.display = 'block';
+                            document.getElementById('login-error').textContent = 'Admin access required';
+                            return;
+                        }
+
+                        localStorage.setItem('adminToken', authToken);
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        location.reload();
+                    } else {
+                        document.getElementById('login-error').style.display = 'block';
+                        document.getElementById('login-error').textContent = data.message;
+                    }
+                } catch (error) {
+                    document.getElementById('login-error').style.display = 'block';
+                    document.getElementById('login-error').textContent = 'Login failed: ' + error.message;
+                }
+            });
+        }
+
+        function initializeApp() {
+            currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            document.getElementById('admin-name').textContent = `Welcome, ${currentUser.name}`;
+
+            setupEventListeners();
+            loadDashboard();
+        }
+
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.dataset.section;
+                    switchSection(section);
+
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Logout
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('currentUser');
+                location.reload();
+            });
+
+            // Refresh
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                const activeSection = document.querySelector('.nav-link.active').dataset.section;
+                switchSection(activeSection);
+            });
+
+            // Modal close
+            document.querySelectorAll('.close, .cancel-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    closeModals();
+                });
+            });
+
+            // User management
+            document.getElementById('add-user-btn').addEventListener('click', function() {
+                openUserModal();
+            });
+
+            document.getElementById('user-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveUser();
+            });
+
+            // Settings
+            document.getElementById('settings-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveSettings();
+            });
+
+            document.getElementById('clear-cache-btn').addEventListener('click', function() {
+                clearCache();
+            });
+
+            // Backup
+            document.getElementById('create-backup-btn').addEventListener('click', function() {
+                createBackup();
+            });
+        }
+
+        function switchSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.getElementById(`${section}-section`).style.display = 'block';
+
+            const titles = {
+                dashboard: 'Dashboard',
+                users: 'User Management',
+                products: 'Product Management',
+                orders: 'Order Management',
+                categories: 'Category Management',
+                settings: 'Settings',
+                backup: 'Backup Management'
+            };
+
+            document.getElementById('page-title').textContent = titles[section];
+
+            switch(section) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'products':
+                    loadProducts();
+                    break;
+                case 'orders':
+                    loadOrders();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+                case 'backup':
+                    loadBackups();
+                    break;
+            }
+        }
+
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        async function loadDashboard() {
+            showLoading(true);
+
+            try {
+                const stats = await apiCall('/admin/dashboard/stats');
+
+                if (stats.success) {
+                    document.getElementById('total-customers').textContent = stats.data.overview.total_customers;
+                    document.getElementById('total-products').textContent = stats.data.overview.total_products;
+                    document.getElementById('total-orders').textContent = stats.data.overview.total_orders;
+                    document.getElementById('total-revenue').textContent = `$${stats.data.overview.total_revenue}`;
+                }
+
+                const activities = await apiCall('/admin/dashboard/activities');
+
+                if (activities.success) {
+                    renderRecentOrders(activities.data.recent_orders);
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+            }
+
+            showLoading(false);
+        }
+
+        async function loadUsers() {
+            showLoading(true);
+
+            const users = await apiCall('/admin/users');
+
+            if (users.success) {
+                renderUsersTable(users.data.data);
+            }
+
+            showLoading(false);
+        }
+
+        async function loadProducts() {
+            showLoading(true);
+
+            const products = await apiCall('/admin/products');
+
+            if (products.success) {
+                renderProductsTable(products.data.data);
+            }
+
+            showLoading(false);
+        }
+
+        async function loadOrders() {
+            showLoading(true);
+
+            const orders = await apiCall('/admin/orders');
+
+            if (orders.success) {
+                renderOrdersTable(orders.data.data);
+            }
+
+            showLoading(false);
+        }
+
+        async function loadSettings() {
+            const settings = await apiCall('/admin/settings');
+
+            if (settings.success) {
+                document.getElementById('site-name').value = settings.data.site_name || '';
+                document.getElementById('site-description').value = settings.data.site_description || '';
+                document.getElementById('site-email').value = settings.data.site_email || '';
+                document.getElementById('currency').value = settings.data.currency || '';
+                document.getElementById('tax-rate').value = settings.data.tax_rate || '';
+            }
+        }
+
+        async function loadBackups() {
+            showLoading(true);
+
+            const backups = await apiCall('/admin/backups');
+
+            if (backups.success) {
+                renderBackupsTable(backups.data);
+            }
+
+            showLoading(false);
+        }
+
+        function renderRecentOrders(orders) {
+            const tbody = document.querySelector('#recent-orders-table tbody');
+            tbody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.customer.name}</td>
+                        <td><span class="badge badge-${getStatusColor(order.status)}">${order.status}</span></td>
+                        <td>$${order.total_amount}</td>
+                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewOrder(${order.id})">View</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function renderUsersTable(users) {
+            const tbody = document.querySelector('#users-table tbody');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                const row = `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td><span class="badge badge-${user.role === 'admin' ? 'warning' : 'info'}">${user.role}</span></td>
+                        <td><span class="badge badge-${user.is_active ? 'success' : 'danger'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                        <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">Edit</button>
+                            <button class="btn btn-sm btn-warning" onclick="toggleUserStatus(${user.id})">Toggle</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function renderProductsTable(products) {
+            const tbody = document.querySelector('#products-table tbody');
+            tbody.innerHTML = '';
+
+            products.forEach(product => {
+                const row = `
+                    <tr>
+                        <td>${product.id}</td>
+                        <td>${product.name}</td>
+                        <td>${product.sku || 'N/A'}</td>
+                        <td>$${product.price}</td>
+                        <td>${product.stock}</td>
+                        <td><span class="badge badge-${product.is_active ? 'success' : 'danger'}">${product.is_active ? 'Active' : 'Inactive'}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editProduct(${product.id})">Edit</button>
+                            <button class="btn btn-sm btn-warning" onclick="toggleProductStatus(${product.id})">Toggle</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function renderOrdersTable(orders) {
+            const tbody = document.querySelector('#orders-table tbody');
+            tbody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.customer.name}</td>
+                        <td><span class="badge badge-${getStatusColor(order.status)}">${order.status}</span></td>
+                        <td><span class="badge badge-${getPaymentStatusColor(order.payment_status)}">${order.payment_status}</span></td>
+                        <td>$${order.total_amount}</td>
+                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewOrder(${order.id})">View</button>
+                            <button class="btn btn-sm btn-warning" onclick="updateOrderStatus(${order.id})">Update</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function renderBackupsTable(backups) {
+            const tbody = document.querySelector('#backups-table tbody');
+            tbody.innerHTML = '';
+
+            backups.forEach(backup => {
+                const row = `
+                    <tr>
+                        <td>${backup.filename}</td>
+                        <td>${formatFileSize(backup.size)}</td>
+                        <td>${backup.created_at}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="downloadBackup('${backup.filename}')">Download</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteBackup('${backup.filename}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function openUserModal(user = null) {
+            const modal = document.getElementById('user-modal');
+            const title = document.getElementById('user-modal-title');
+            const form = document.getElementById('user-form');
+
+            if (user) {
+                title.textContent = 'Edit User';
+                document.getElementById('user-name').value = user.name;
+                document.getElementById('user-email').value = user.email;
+                document.getElementById('user-role').value = user.role;
+                document.getElementById('user-password').removeAttribute('required');
+                form.dataset.userId = user.id;
+            } else {
+                title.textContent = 'Add User';
+                form.reset();
+                document.getElementById('user-password').setAttribute('required', 'required');
+                delete form.dataset.userId;
+            }
+
+            modal.style.display = 'block';
+        }
+
+        async function saveUser() {
+            const form = document.getElementById('user-form');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+
+            let endpoint = '/admin/users';
+            let method = 'POST';
+
+            if (form.dataset.userId) {
+                endpoint = `/admin/users/${form.dataset.userId}`;
+                method = 'PUT';
+                if (!data.password) {
+                    delete data.password;
+                }
+            }
+
+            const result = await apiCall(endpoint, method, data);
+
+            if (result.success) {
+                closeModals();
+                loadUsers();
+                showNotification('User saved successfully', 'success');
+            } else {
+                showNotification(result.message, 'error');
+            }
+        }
+
+        async function saveSettings() {
+            const form = document.getElementById('settings-form');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+
+            const result = await apiCall('/admin/settings', 'PUT', data);
+
+            if (result.success) {
+                showNotification('Settings saved successfully', 'success');
+            } else {
+                showNotification(result.message, 'error');
+            }
+        }
+
+        async function clearCache() {
+            const result = await apiCall('/admin/cache/clear', 'POST');
+
+            if (result.success) {
+                showNotification('Cache cleared successfully', 'success');
+            } else {
+                showNotification(result.message, 'error');
+            }
+        }
+
+        async function createBackup() {
+            showLoading(true);
+
+            const result = await apiCall('/admin/backup/create', 'POST');
+
+            if (result.success) {
+                showNotification('Backup created successfully', 'success');
+                loadBackups();
+            } else {
+                showNotification(result.message, 'error');
+            }
+
+            showLoading(false);
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showNotification(message, type) {
+            // Simple notification - you can enhance this
+            const color = type === 'success' ? 'green' : 'red';
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${color};
+                color: white;
+                padding: 15px;
+                border-radius: 5px;
+                z-index: 1001;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                pending: 'warning',
+                processing: 'info',
+                shipped: 'info',
+                delivered: 'success',
+                cancelled: 'danger'
+            };
+            return colors[status] || 'info';
+        }
+
+        function getPaymentStatusColor(status) {
+            const colors = {
+                pending: 'warning',
+                paid: 'success',
+                failed: 'danger',
+                refunded: 'info'
+            };
+            return colors[status] || 'info';
+        }
+
+        function formatFileSize(bytes) {
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            if (bytes === 0) return '0 Bytes';
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Additional functions for actions
+        async function editUser(id) {
+            const result = await apiCall(`/admin/users/${id}`);
+            if (result.success) {
+                openUserModal(result.data);
+            }
+        }
+
+        async function toggleUserStatus(id) {
+            const result = await apiCall(`/admin/users/${id}/toggle-status`, 'POST');
+            if (result.success) {
+                loadUsers();
+                showNotification('User status updated', 'success');
+            }
+        }
+
+        async function deleteUser(id) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                const result = await apiCall(`/admin/users/${id}`, 'DELETE');
+                if (result.success) {
+                    loadUsers();
+                    showNotification('User deleted successfully', 'success');
+                }
+            }
+        }
+
+        async function toggleProductStatus(id) {
+            const result = await apiCall(`/admin/products/${id}/toggle-status`, 'POST');
+            if (result.success) {
+                loadProducts();
+                showNotification('Product status updated', 'success');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                const result = await apiCall(`/admin/products/${id}`, 'DELETE');
+                if (result.success) {
+                    loadProducts();
+                    showNotification('Product deleted successfully', 'success');
+                }
+            }
+        }
+
+        async function downloadBackup(filename) {
+            window.open(`${API_BASE}/admin/backup/${filename}/download`);
+        }
+
+        async function deleteBackup(filename) {
+            if (confirm('Are you sure you want to delete this backup?')) {
+                const result = await apiCall(`/admin/backup/${filename}`, 'DELETE');
+                if (result.success) {
+                    loadBackups();
+                    showNotification('Backup deleted successfully', 'success');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
