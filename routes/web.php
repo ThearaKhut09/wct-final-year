@@ -46,6 +46,10 @@ Route::prefix('admin')->group(function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard.view');
+
     Route::get('/login', function () {
         return view('admin.login');
     })->name('admin.login');

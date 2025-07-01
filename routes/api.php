@@ -61,6 +61,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/users/{id}/toggle-status', [AdminUserController::class, 'toggleStatus']);
         Route::get('/admin/users-stats', [AdminUserController::class, 'getUserStats']);
 
+        // Customer Management (alias for users with customer role)
+        Route::get('/admin/customers', [AdminUserController::class, 'index']);
+        Route::get('/admin/customers/{id}', [AdminUserController::class, 'show']);
+        Route::put('/admin/customers/{id}', [AdminUserController::class, 'update']);
+        Route::delete('/admin/customers/{id}', [AdminUserController::class, 'destroy']);
+
         // Order Management
         Route::get('/admin/orders', [AdminOrderController::class, 'index']);
         Route::get('/admin/orders/{id}', [AdminOrderController::class, 'show']);
