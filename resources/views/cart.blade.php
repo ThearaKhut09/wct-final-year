@@ -250,8 +250,16 @@
     function renderCart() {
         const cartContent = document.getElementById('cartContent');
 
-        // Use the global cart object from api-client.js
-        if (!window.cart || window.cart.items.length === 0) {
+        // Get cart from localStorage as fallback
+        let cartItems = [];
+        if (window.cart && window.cart.items) {
+            cartItems = window.cart.items;
+        } else {
+            // Fallback to localStorage
+            cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+        }
+
+        if (cartItems.length === 0) {
             cartContent.innerHTML = `
                 <div class="empty-cart">
                     <i class="fas fa-shopping-cart"></i>
@@ -263,7 +271,9 @@
                 </div>
             `;
             return;
-        }        const subtotal = window.cart.getTotal();
+        }        const subtotal = cartItems.reduce((total, item) => {
+            return total + (parseFloat(item.product.price) * item.quantity);
+        }, 0);
         const tax = subtotal * 0.08; // 8% tax
         const shipping = subtotal > 50 ? 0 : 9.99;
         const total = subtotal + tax + shipping;
@@ -271,9 +281,9 @@
         cartContent.innerHTML = `
             <div class="cart-container">
                 <div class="cart-items">
-                    ${window.cart.items.map(item => `
+                    ${cartItems.map(item => `
                         <div class="cart-item" data-id="${item.product.id}">
-                            <img src="${item.product.image}" alt="${item.product.name}" class="item-image"
+                            <img src="${item.product.image || 'https://via.placeholder.com/100x100?text=Product'}" alt="${item.product.name}" class="item-image"
                                  onerror="this.src='https://via.placeholder.com/100x100?text=Product'">
                             <div class="item-details">
                                 <h3>${item.product.name}</h3>
@@ -286,7 +296,7 @@
                                 <button class="quantity-btn" onclick="updateQuantity(${item.product.id}, ${item.quantity + 1})">+</button>
                             </div>
                             <div class="item-total">$${(parseFloat(item.product.price) * item.quantity).toFixed(2)}</div>
-                            <button class="remove-btn" onclick="removeItem(${item.id})" title="Remove item">
+                            <button class="remove-btn" onclick="removeItem(${item.product.id})" title="Remove item">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -305,7 +315,7 @@
                 <div class="cart-summary">
                     <h3 class="summary-title">Order Summary</h3>
                     <div class="summary-row">
-                        <span>Subtotal (${cart.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
+                        <span>Subtotal (${cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
                         <span>$${subtotal.toFixed(2)}</span>
                     </div>
                     <div class="summary-row">
@@ -345,25 +355,48 @@
             return;
         }
 
-        if (window.cart) {
-            window.cart.updateQuantity(productId, newQuantity);
+        // Get current cart items
+        let cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+
+        // Find and update the item
+        const item = cartItems.find(item => item.product.id === productId);
+        if (item) {
+            item.quantity = newQuantity;
+            localStorage.setItem('cart_items', JSON.stringify(cartItems));
+
+            // Update global cart object if it exists
+            if (window.cart) {
+                window.cart.items = cartItems;
+                window.cart.updateUI();
+            }
+
             renderCart();
+            showNotification('Quantity updated!', 'success');
         }
     }
 
     function removeItem(productId) {
-        // Create custom confirmation dialog
-        const item = window.cart ? window.cart.items.find(item => item.product.id === productId) : null;
+        // Get current cart items
+        let cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+        const item = cartItems.find(item => item.product.id === productId);
+
         if (item) {
             createConfirmDialog(
                 'Remove Item',
                 `Are you sure you want to remove "${item.product.name}" from your cart?`,
                 () => {
+                    // Remove the item
+                    cartItems = cartItems.filter(item => item.product.id !== productId);
+                    localStorage.setItem('cart_items', JSON.stringify(cartItems));
+
+                    // Update global cart object if it exists
                     if (window.cart) {
-                        window.cart.remove(productId);
-                        renderCart();
+                        window.cart.items = cartItems;
+                        window.cart.updateUI();
                     }
-                }
+
+                    renderCart();
+                    showNotification('Item removed from cart!', 'success');
                 }
             );
         }
@@ -371,31 +404,42 @@
 
     function clearCart() {
         // Create custom confirmation dialog
-        createConfirmDialog(            'Clear Cart',
+        createConfirmDialog(
+            'Clear Cart',
             'Are you sure you want to clear your entire cart? This action cannot be undone.',
             () => {
+                localStorage.setItem('cart_items', '[]');
+
+                // Update global cart object if it exists
                 if (window.cart) {
-                    window.cart.clear();
-                    renderCart();
+                    window.cart.items = [];
+                    window.cart.updateUI();
                 }
+
+                renderCart();
+                showNotification('Cart cleared!', 'success');
             }
         );
     }
 
     function proceedToCheckout() {
-        if (!window.cart || window.cart.items.length === 0) {
+        // Get current cart items
+        let cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+
+        if (cartItems.length === 0) {
             showNotification('Your cart is empty!', 'warning');
             return;
         }
 
         // For demo purposes, show a checkout simulation
         showNotification('Checkout feature coming soon! This is a demo.', 'info');
-          // In a real application, you would redirect to checkout:
+        // In a real application, you would redirect to checkout:
         // window.location.href = '/checkout';
     }
 
     function saveForLater() {
-        localStorage.setItem('savedCart', JSON.stringify(cart));
+        const cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+        localStorage.setItem('savedCart', JSON.stringify(cartItems));
         showNotification('Cart saved for later!', 'success');
     }
 
@@ -403,38 +447,60 @@
     function addTestProducts() {
         const testProducts = [
             {
-                id: 1,
-                name: "iPhone 14 Pro",
-                price: 999.99,
-                image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=200&h=200&fit=crop",
+                product: {
+                    id: 1,
+                    name: "iPhone 14 Pro",
+                    price: 999.99,
+                    image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=200&h=200&fit=crop"
+                },
                 quantity: 1
             },
             {
-                id: 2,
-                name: "Samsung Galaxy Watch",
-                price: 299.99,
-                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop",
+                product: {
+                    id: 2,
+                    name: "Samsung Galaxy Watch",
+                    price: 299.99,
+                    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop"
+                },
                 quantity: 2
             }
         ];
 
-        testProducts.forEach(product => {
-            const existingItem = cart.find(item => item.id === product.id);
+        let cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+
+        testProducts.forEach(newItem => {
+            const existingItem = cartItems.find(item => item.product.id === newItem.product.id);
             if (!existingItem) {
-                cart.push(product);
+                cartItems.push(newItem);
             }
         });
 
-        localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.setItem('cart_items', JSON.stringify(cartItems));
+
+        // Update global cart object if it exists
+        if (window.cart) {
+            window.cart.items = cartItems;
+            window.cart.updateUI();
+        }
+
         updateCartCount();
         renderCart();
         showNotification('Test products added to cart!', 'success');
     }    // Initialize cart on page load
     document.addEventListener('DOMContentLoaded', function() {
+        // Update cart count in navigation
+        if (typeof window.updateCartCount === 'function') {
+            window.updateCartCount();
+        } else {
+            updateCartCount();
+        }
+
+        // Render cart items
         renderCart();
 
         // Add test products button if cart is empty
-        if (cart.length === 0) {
+        const cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+        if (cartItems.length === 0) {
             setTimeout(() => {
                 const emptyCart = document.querySelector('.empty-cart');
                 if (emptyCart) {
@@ -449,6 +515,17 @@
             }, 100);
         }
     });
+
+    // Function to update cart count in navigation
+    function updateCartCount() {
+        const cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+        const totalCount = cartItems.reduce((count, item) => count + item.quantity, 0);
+
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        cartCountElements.forEach(element => {
+            element.textContent = totalCount;
+        });
+    }
 
     // Custom confirmation dialog function
     function createConfirmDialog(title, message, onConfirm) {

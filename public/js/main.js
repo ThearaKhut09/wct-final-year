@@ -482,8 +482,17 @@ window.removeItem = function(productId) {
 // Make updateCartCount available globally
 window.updateCartCount = function() {
     const cartCount = document.getElementById('cartCount');
-    if (cartCount && window.cart) {
-        const totalItems = window.cart.getCount();
+    if (cartCount) {
+        let totalItems = 0;
+
+        if (window.cart && window.cart.items) {
+            totalItems = window.cart.getCount();
+        } else {
+            // Fallback to localStorage
+            const cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+            totalItems = cartItems.reduce((count, item) => count + item.quantity, 0);
+        }
+
         cartCount.textContent = totalItems;
 
         // Update cart badge visibility

@@ -757,34 +757,38 @@
 
     function addToCartWithQuantity() {
         const quantity = parseInt(document.getElementById('quantity').value);
+
         // Use global cart object from api-client.js
         if (window.cart) {
             window.cart.add(productData, quantity);
         } else {
-            // Fallback if cart not ready
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const existingItem = cart.find(item => item.id === productData.id);
+            // Fallback if cart not ready - use the correct cart_items structure
+            let cartItems = JSON.parse(localStorage.getItem('cart_items') || '[]');
+            const existingItem = cartItems.find(item => item.product.id === productData.id);
 
             if (existingItem) {
                 const newQuantity = existingItem.quantity + quantity;
                 if (newQuantity <= productData.maxStock) {
                     existingItem.quantity = newQuantity;
                     showNotification(`Updated quantity to ${newQuantity}`, 'success');
-                } else {                    showNotification(`Cannot add more. Only ${productData.maxStock} available.`, 'warning');
+                } else {
+                    showNotification(`Cannot add more. Only ${productData.maxStock} available.`, 'warning');
                     return;
                 }
             } else {
-                cart.push({
-                    id: productData.id,
-                    name: productData.name,
-                    price: productData.price,
-                    image: productData.image,
+                cartItems.push({
+                    product: {
+                        id: productData.id,
+                        name: productData.name,
+                        price: productData.price,
+                        image: productData.image
+                    },
                     quantity: quantity
                 });
                 showNotification(`Added ${quantity} item(s) to cart!`, 'success');
             }
 
-            localStorage.setItem('cart', JSON.stringify(cart));
+            localStorage.setItem('cart_items', JSON.stringify(cartItems));
             updateCartCount();
         }
     }
